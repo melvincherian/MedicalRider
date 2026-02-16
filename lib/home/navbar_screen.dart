@@ -1,7 +1,9 @@
 
 import 'package:flutter/material.dart';
+import 'package:medical_delivery_app/home/history_screen.dart';
 import 'package:medical_delivery_app/home/home_screen.dart';
 import 'package:medical_delivery_app/home/profile_screen.dart';
+import 'package:medical_delivery_app/home/wallet_screen.dart';
 import 'package:medical_delivery_app/providers/navbar_provider.dart';
 // import 'package:medical_delivery_app/view/home/history_screen.dart';
 // import 'package:medical_delivery_app/view/home/home_screen.dart';
@@ -18,9 +20,9 @@ class NavbarScreen extends StatelessWidget {
 
     final pages = [
       HomeScreen(),
-            ProfileScreen(),
+            HistoryScreen(),
 
-      HomeScreen(),
+      WalletScreen(),
       ProfileScreen()
     ];
 

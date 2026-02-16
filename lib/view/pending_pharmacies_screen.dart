@@ -1,471 +1,519 @@
 import 'package:flutter/material.dart';
+import 'package:medical_delivery_app/home/navbar_screen.dart';
+import 'package:medical_delivery_app/models/pending_accepted_order_model.dart';
+import 'package:medical_delivery_app/providers/pending_accepted_order_provider.dart';
 import 'package:medical_delivery_app/widget/confirm_order_modal.dart';
+import 'package:medical_delivery_app/widget/order_delivered_modal.dart';
 import 'package:provider/provider.dart';
-import 'package:medical_delivery_app/models/rider_order_model.dart';
-import 'package:medical_delivery_app/providers/rider_order_provider.dart';
 
-class PendingPharmaciesScreen extends StatefulWidget {
+class PharmacyPickupScreen extends StatefulWidget {
   final String orderId;
   final String riderId;
 
-  const PendingPharmaciesScreen({
+  const PharmacyPickupScreen({
     super.key,
     required this.orderId,
     required this.riderId,
   });
 
   @override
-  State<PendingPharmaciesScreen> createState() => _PendingPharmaciesScreenState();
+  State<PharmacyPickupScreen> createState() => _PharmacyPickupScreenState();
 }
 
-class _PendingPharmaciesScreenState extends State<PendingPharmaciesScreen> {
+class _PharmacyPickupScreenState extends State<PharmacyPickupScreen> {
   String? _selectedPharmacyId;
-  bool _isUpdating = false;
+  NewOrder? _order;
 
   @override
   void initState() {
     super.initState();
-    _loadOrder();
-  }
-
-  Future<void> _loadOrder() async {
-    print('=== LOADING ORDER IN PENDING PHARMACIES SCREEN ===');
-    final provider = Provider.of<RiderOrderProvider>(context, listen: false);
-    await provider.loadOrder(widget.orderId, widget.riderId);
-  }
-
-  Future<void> _handlePharmacySelection(PendingPharmacy pharmacy) async {
-    print('=== HANDLING PHARMACY SELECTION ===');
-    print('Selected Pharmacy: ${pharmacy.pharmacyName}');
-    print('Pharmacy ID: ${pharmacy.pharmacyId}');
-    
-    setState(() {
-      _selectedPharmacyId = pharmacy.pharmacyId;
-      _isUpdating = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchOrderDetails();
     });
+  }
 
-    try {
-      final provider = Provider.of<RiderOrderProvider>(context, listen: false);
-      
-      print('Calling markPharmacyAsAccepted...');
-      final success = await provider.markPharmacyAsAccepted(
-        riderId: widget.riderId,
-        orderId: widget.orderId,
-        pharmacyId: pharmacy.pharmacyId,
-      );
+  Future<void> _fetchOrderDetails() async {
+    final provider = Provider.of<PendingAcceptedOrderProvider>(
+      context,
+      listen: false,
+    );
 
-      print('markPharmacyAsAccepted result: $success');
+    await provider.fetchPendingAcceptedOrders(widget.riderId);
 
-      if (success && mounted) {
-        _showSuccessSnackbar('Pharmacy accepted successfully');
-        
-        // Navigate to ConfirmOrderModal which will show only this accepted pharmacy
-        print('Navigating to ConfirmOrderModal...');
+    if (mounted) {
+      setState(() {
+        _order = provider.getOrderById(widget.orderId);
+      });
+
+      if (_order == null) {
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(
+        //     content: Text('Order not found'),
+        //     backgroundColor: Colors.red,
+        //   ),
+        // );
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => ConfirmOrderModal(
-              orderId: widget.orderId,
-              riderId: widget.riderId,
-            ),
+            builder: (context) =>  OrderDeliveredModal(orderId: widget.orderId,),
           ),
         );
-      } else {
-        _showErrorSnackbar('Failed to update pharmacy status');
-      }
-    } catch (e) {
-      print('Error in handlePharmacySelection: $e');
-      _showErrorSnackbar('Error: ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isUpdating = false;
-        });
       }
     }
   }
 
-  void _showErrorSnackbar(String message) {
-    if (!mounted) return;
+  Future<void> _handleAcceptOrder(
+    BuildContext context,
+    PendingAcceptedOrderProvider provider,
+  ) async {
+    if (_selectedPharmacyId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a pharmacy first'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final success = await provider.acceptOrderWithPharmacy(
+      riderId: widget.riderId,
+      orderId: widget.orderId,
+      pharmacyId: _selectedPharmacyId!,
+    );
+
+    if (!success || !mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            provider.updateMessage.isNotEmpty
+                ? provider.updateMessage
+                : 'Failed to accept order',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 12),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        margin: const EdgeInsets.all(16),
+        content: Text(provider.updateMessage),
+        backgroundColor: Colors.green,
       ),
     );
-  }
 
-  void _showSuccessSnackbar(String message) {
+    // Navigate back or to next screen
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.white),
-            const SizedBox(width: 12),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        margin: const EdgeInsets.all(16),
+    
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>  ConfirmOrderModal(orderId: widget.orderId,riderId: widget.riderId,),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<RiderOrderProvider>(
-      builder: (context, provider, child) {
-        if (provider.isLoading) {
-          return const Scaffold(
-            body: Center(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const NavbarScreen(),
+              ),
+            );
+          },
+        ),
+        title: const Text(
+          'Pharmacy Pickup',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Consumer<PendingAcceptedOrderProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading && _order == null) {
+            return const Center(
               child: CircularProgressIndicator(),
-            ),
-          );
-        }
+            );
+          }
 
-        // Get ONLY pharmacies that are NOT yet accepted
-        // Filter out pharmacies with status "Accepted"
-        final allPharmacies = provider.pendingPharmacies;
-        final pendingPharmacies = allPharmacies
-            .where((p) => p.status.toLowerCase() != 'rider accepted')
-            .toList();
-
-        print('=== PENDING PHARMACIES SCREEN BUILD ===');
-        print('Total pharmacies in pharmacyResponses: ${allPharmacies.length}');
-        print('Pending (not accepted) pharmacies: ${pendingPharmacies.length}');
-        for (var p in allPharmacies) {
-          print('  - ${p.pharmacyName}: ${p.status}');
-        }
-
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Select Pharmacy to Accept'),
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ConfirmOrderModal(
-                      orderId: widget.orderId,
-                      riderId: widget.riderId,
+          if (provider.error != null && _order == null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error loading order',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
                     ),
                   ),
-                );
-              },
-            ),
-          ),
-          body: pendingPharmacies.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.check_circle_outline,
-                        size: 80,
-                        color: Colors.green[300],
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'No Pending Pharmacies',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'All pharmacies have been accepted',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ConfirmOrderModal(
-                                orderId: widget.orderId,
-                                riderId: widget.riderId,
-                              ),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 12,
-                          ),
-                        ),
-                        child: const Text('Back to Pickup'),
-                      ),
-                    ],
+                  const SizedBox(height: 8),
+                  Text(
+                    provider.error!,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.red,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Info card
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.blue.withOpacity(0.1),
-                              Colors.blue.withOpacity(0.05),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.blue.withOpacity(0.3),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.info_outline,
-                                  color: Colors.blue[700],
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Select Next Pharmacy',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Choose one pharmacy to accept and pick up medicines from.',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey[700],
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${pendingPharmacies.length} ${pendingPharmacies.length == 1 ? 'pharmacy' : 'pharmacies'} remaining',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.blue[700],
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _fetchOrderDetails,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
 
+          if (_order == null) {
+            return const Center(
+              child: Text('Order not found'),
+            );
+          }
+
+          final order = _order!;
+
+          return Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    children: [
                       const SizedBox(height: 20),
 
-                      // Pharmacies list
-                      ...pendingPharmacies.map((pharmacy) {
-                        final bool isSelected = _selectedPharmacyId == pharmacy.pharmacyId;
-                        
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 16),
+                      // Order ID
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey[400]!),
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        child: Text(
+                          'Order #${order.orderId}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 30),
+
+                      const Divider(),
+                      const SizedBox(height: 20),
+
+                      // Pharmacy Selection Section
+                      if (order.pharmacyResponses.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            border: Border.all(
-                              color: isSelected ? Colors.blue : Colors.grey[300]!,
-                              width: isSelected ? 2 : 1,
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.blue.withOpacity(0.1),
+                                Colors.blue.withOpacity(0.05),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
                             borderRadius: BorderRadius.circular(12),
-                            color: isSelected 
-                                ? Colors.blue.withOpacity(0.05)
-                                : Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
-                                blurRadius: 5,
-                                spreadRadius: 1,
-                                offset: const Offset(0, 2),
+                            border: Border.all(
+                              color: Colors.blue.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.local_pharmacy,
+                                    color: Colors.blue[700],
+                                    size: 24,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Select Pickup Pharmacy',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Tap to choose one pharmacy (${order.pharmacyResponses.length} available)',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
                               ),
                             ],
                           ),
-                          child: Column(
-                            children: [
-                              ListTile(
-                                contentPadding: const EdgeInsets.all(16),
-                                leading: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: isSelected 
-                                        ? Colors.blue.shade100
-                                        : Colors.blue.shade50,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    Icons.local_pharmacy,
-                                    color: Colors.blue.shade700,
-                                    size: 24,
-                                  ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Pharmacy List
+                        ...order.pharmacyResponses.map((response) {
+                          final details = response.pharmacyDetails;
+                          if (details == null) return const SizedBox.shrink();
+                          
+                          final isSelected = _selectedPharmacyId == response.pharmacyId;
+
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedPharmacyId = response.pharmacyId;
+                              });
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? Colors.blue.withOpacity(0.1)
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Colors.blue
+                                      : Colors.grey[300]!,
+                                  width: isSelected ? 2 : 1.5,
                                 ),
-                                title: Text(
-                                  pharmacy.pharmacyName,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const SizedBox(height: 6),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.location_on,
-                                          size: 14,
-                                          color: Colors.grey[600],
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Expanded(
-                                          child: Text(
-                                            pharmacy.address,
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              color: Colors.grey[600],
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
+                              ),
+                              child: Row(
+                                children: [
+                                  // Radio indicator
+                                  Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? Colors.blue
+                                            : Colors.grey[400]!,
+                                        width: 2,
+                                      ),
+                                      color: isSelected
+                                          ? Colors.blue
+                                          : Colors.transparent,
                                     ),
-                                    const SizedBox(height: 4),
-                                    Row(
+                                    child: isSelected
+                                        ? const Icon(
+                                            Icons.check,
+                                            size: 16,
+                                            color: Colors.white,
+                                          )
+                                        : null,
+                                  ),
+                                  const SizedBox(width: 12),
+
+                                  // Pharmacy Image
+                                  Container(
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      color: Colors.grey[200],
+                                    ),
+                                    child: details.image.isNotEmpty
+                                        ? ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            child: Image.network(
+                                              details.image,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error,
+                                                  stackTrace) {
+                                                return const Icon(
+                                                  Icons.local_pharmacy,
+                                                  size: 25,
+                                                  color: Colors.deepPurple,
+                                                );
+                                              },
+                                            ),
+                                          )
+                                        : const Icon(
+                                            Icons.local_pharmacy,
+                                            size: 25,
+                                            color: Colors.deepPurple,
+                                          ),
+                                  ),
+                                  const SizedBox(width: 12),
+
+                                  // Pharmacy Details
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Icon(
-                                          Icons.phone,
-                                          size: 14,
-                                          color: Colors.grey[600],
-                                        ),
-                                        const SizedBox(width: 4),
                                         Text(
-                                          pharmacy.phone,
+                                          details.name,
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                            color: isSelected
+                                                ? Colors.blue[900]
+                                                : Colors.black87,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          details.address,
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: Colors.grey[600],
                                           ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: response.status.toLowerCase() == 'accepted'
+                                                ? Colors.green.withOpacity(0.1)
+                                                : Colors.orange.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(4),
+                                            border: Border.all(
+                                              color: response.status.toLowerCase() == 'accepted'
+                                                  ? Colors.green
+                                                  : Colors.orange,
+                                              width: 0.5,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            response.status,
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: response.status.toLowerCase() == 'accepted'
+                                                  ? Colors.green[700]
+                                                  : Colors.orange[700],
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 6),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.orange.shade50,
-                                        borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(
-                                          color: Colors.orange.shade200,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        'Status: ${pharmacy.status}',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: Colors.orange.shade700,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    onPressed: (_isUpdating && isSelected) 
-                                        ? null 
-                                        : () => _handlePharmacySelection(pharmacy),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: isSelected 
-                                          ? Colors.green 
-                                          : Colors.blue,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 14,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      elevation: isSelected ? 2 : 0,
-                                    ),
-                                    child: (_isUpdating && isSelected)
-                                        ? const SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: Colors.white,
-                                            ),
-                                          )
-                                        : Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Icon(
-                                                isSelected 
-                                                    ? Icons.check_circle
-                                                    : Icons.check_circle_outline,
-                                                size: 18,
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                isSelected 
-                                                    ? 'Processing...' 
-                                                    : 'Accept & Proceed',
-                                                style: const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
+                            ),
+                          );
+                        }).toList(),
+                      ],
+
+                      const SizedBox(height: 100),
                     ],
                   ),
                 ),
-        );
-      },
+              ),
+
+              // Bottom Action Button
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 1,
+                      blurRadius: 10,
+                      offset: const Offset(0, -3),
+                    ),
+                  ],
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: GestureDetector(
+                    onTap: provider.isUpdating || _selectedPharmacyId == null
+                        ? null
+                        : () => _handleAcceptOrder(context, provider),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      decoration: BoxDecoration(
+                        color: provider.isUpdating || _selectedPharmacyId == null
+                            ? Colors.grey[300]
+                            : const Color(0xFF5931DD),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: provider.isUpdating
+                          ? const Center(
+                              child: SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor:
+                                      AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.check_circle_outline,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  _selectedPharmacyId == null
+                                      ? 'Select a Pharmacy'
+                                      : 'Accept Order',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

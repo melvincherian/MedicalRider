@@ -1,9 +1,11 @@
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:medical_delivery_app/view/pending_pharmacies_screen.dart';
 import 'package:medical_delivery_app/view/user_screen.dart';
 import 'package:medical_delivery_app/widget/order_delivered_modal.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
@@ -52,65 +54,6 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
     await provider.loadOrder(widget.orderId, widget.riderId);
     
     print('Order loaded. pharmacyResponses count: ${provider.currentOrder?.pharmacyResponses.length ?? 0}');
-    
-    // After loading, check pharmacy status
-    if (mounted) {
-      _checkPharmacyStatus();
-    }
-  }
-
-  void _checkPharmacyStatus() {
-    final provider = Provider.of<RiderOrderProvider>(context, listen: false);
-    
-    print('=== CHECKING PHARMACY STATUS ===');
-    
-    // Check if pharmacyResponses array is empty (all pharmacies picked up)
-    if (provider.hasNoPendingPharmacies) {
-      print('pharmacyResponses is EMPTY - all pharmacies picked up!');
-      print('Navigating to UserScreen');
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _navigateToUserScreen();
-      });
-      return;
-    }
-    
-    print('Total pharmacyResponses: ${provider.pendingPharmacies.length}');
-    
-    // Count accepted pharmacies (status = "Accepted")
-    final acceptedPharmacies = provider.acceptedPharmacies;
-    
-    print('Accepted pharmacies count: ${acceptedPharmacies.length}');
-    
-    // If there are NO accepted pharmacies, navigate to PendingPharmaciesScreen
-    if (acceptedPharmacies.isEmpty) {
-      print('No accepted pharmacies found. Navigating to PendingPharmaciesScreen');
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _navigateToPendingPharmaciesScreen();
-      });
-    }
-  }
-
-  void _navigateToPendingPharmaciesScreen() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PendingPharmaciesScreen(
-          orderId: widget.orderId,
-          riderId: widget.riderId,
-        ),
-      ),
-    );
-  }
-
-  void _navigateToUserScreen() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OrderDeliveredModal(
-          orderId: widget.orderId,
-        ),
-      ),
-    );
   }
 
   Future<void> _openGoogleMaps(double latitude, double longitude) async {
@@ -152,26 +95,34 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
     }
   }
 
-  Future<void> _pickImage(String pharmacyId) async {
-    try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 70,
-      );
+Future<void> _pickImage(String pharmacyId) async {
+  try {
+    final status = await Permission.camera.request();
 
-      if (image != null) {
-        setState(() {
-          if (!_pharmacyImages.containsKey(pharmacyId)) {
-            _pharmacyImages[pharmacyId] = [];
-          }
-          _pharmacyImages[pharmacyId]!.add(File(image.path));
-          _imagesUploaded[pharmacyId] = false;
-        });
-      }
-    } catch (e) {
-      _showErrorSnackbar('Failed to pick image');
+    if (!status.isGranted) {
+      _showErrorSnackbar('Camera permission is required');
+      return;
     }
+
+    final XFile? image = await _imagePicker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 70,
+    );
+
+    if (!mounted) return;
+
+    if (image != null) {
+      setState(() {
+        _pharmacyImages.putIfAbsent(pharmacyId, () => []);
+        _pharmacyImages[pharmacyId]!.add(File(image.path));
+        _imagesUploaded[pharmacyId] = false;
+      });
+    }
+  } catch (e) {
+    _showErrorSnackbar('Failed to open camera');
   }
+}
+
 
   void _removeImage(String pharmacyId, int index) {
     setState(() {
@@ -185,118 +136,166 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
     });
   }
 
-  Future<bool> _uploadDeliveryProof(String pharmacyId) async {
-    if (!_pharmacyImages.containsKey(pharmacyId) || 
-        _pharmacyImages[pharmacyId]!.isEmpty) {
-      _showErrorSnackbar('Please take at least one photo');
-      return false;
-    }
+Future<bool> _uploadDeliveryProof(String pharmacyId) async {
+  // Validate images
+  if (!_pharmacyImages.containsKey(pharmacyId) ||
+      _pharmacyImages[pharmacyId]!.isEmpty) {
+    _showErrorSnackbar('Please take at least one photo');
+    return false;
+  }
 
+  // Start upload state
+  if (mounted) {
     setState(() {
       _isUploading[pharmacyId] = true;
     });
+  }
 
-    try {
-      bool allUploadsSuccessful = true;
-      
-      for (var image in _pharmacyImages[pharmacyId]!) {
-        var request = http.MultipartRequest(
-          'POST',
-          Uri.parse('http://31.97.206.144:7021/api/rider/uploadDeliveryProof/${widget.riderId}/${widget.orderId}/$pharmacyId'),
-        );
-        
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'image',
-            image.path,
-          ),
-        );
-        
-        var streamedResponse = await request.send();
-        var response = await http.Response.fromStream(streamedResponse);
-        
-        print('Upload delivery proof response: ${response.statusCode}');
-        print('Response body: ${response.body}');
-        
-        if (response.statusCode != 200) {
-          allUploadsSuccessful = false;
-          break;
-        }
+  try {
+    bool allUploadsSuccessful = true;
+
+    for (final image in _pharmacyImages[pharmacyId]!) {
+      final uri = Uri.parse(
+        'http://31.97.206.144:7021/api/rider/upload-medicine-proof/'
+        '${widget.riderId}/${widget.orderId}/$pharmacyId',
+      );
+
+      final request = http.MultipartRequest('POST', uri);
+
+      // Add image file
+      final multipartFile = await http.MultipartFile.fromPath(
+        'image',
+        image.path,
+      );
+      request.files.add(multipartFile);
+
+      // 🔍 PRINT REQUEST PAYLOAD
+      debugPrint('========== MULTIPART REQUEST ==========');
+      debugPrint('URL: ${request.url}');
+      debugPrint('Method: ${request.method}');
+      debugPrint('Headers: ${request.headers}');
+      debugPrint('Fields: ${request.fields}');
+      debugPrint('Files count: ${request.files.length}');
+      for (final file in request.files) {
+        debugPrint('File field: ${file.field}');
+        debugPrint('File filename: ${file.filename}');
+        debugPrint('File contentType: ${file.contentType}');
+        debugPrint('File length: ${file.length}');
       }
-      
+      debugPrint('=======================================');
+
+      // Send request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      // 🔍 PRINT RESPONSE
+      debugPrint('========== RESPONSE ==========');
+      debugPrint('Status code: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
+      debugPrint('=======================================');
+
+      // Validate response
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        allUploadsSuccessful = false;
+        break;
+      }
+    }
+
+    // Update UI after upload
+    if (mounted) {
       setState(() {
         _isUploading[pharmacyId] = false;
         if (allUploadsSuccessful) {
           _imagesUploaded[pharmacyId] = true;
         }
       });
-      
-      if (allUploadsSuccessful) {
-        _showSuccessSnackbar('Photos uploaded successfully');
-      }
-      
-      return allUploadsSuccessful;
-    } catch (e) {
+    }
+
+    // Show success message
+    if (allUploadsSuccessful) {
+      _showSuccessSnackbar('Photos uploaded successfully');
+    }
+
+    return allUploadsSuccessful;
+  } catch (e) {
+    // Error handling
+    if (mounted) {
       setState(() {
         _isUploading[pharmacyId] = false;
         _imagesUploaded[pharmacyId] = false;
       });
-      _showErrorSnackbar('Failed to upload images: $e');
-      return false;
     }
+
+    _showErrorSnackbar('Failed to upload images: $e');
+    return false;
   }
+}
 
   Future<void> _handlePharmacyPickup(String pharmacyId) async {
+    if (_isUpdatingStatus) return;
+
     print('=== HANDLING PHARMACY PICKUP ===');
     print('Pharmacy ID: $pharmacyId');
-    print('This will REMOVE pharmacy from pharmacyResponses array');
-    
-    setState(() {
-      _isUpdatingStatus = true;
-    });
+
+    setState(() => _isUpdatingStatus = true);
 
     try {
       final provider = Provider.of<RiderOrderProvider>(context, listen: false);
-      final success = await provider.markPharmacyAsPickedUp(
+
+      // Get pharmacy name before updating
+      final currentPharmacy = provider.acceptedPharmacies.firstWhere(
+        (p) => p.pharmacyId == pharmacyId,
+        orElse: () => provider.acceptedPharmacies.first,
+      );
+      final pharmacyName = currentPharmacy.pharmacyName;
+
+      final bool success = await provider.markPharmacyAsPickedUp(
         riderId: widget.riderId,
         orderId: widget.orderId,
         pharmacyId: pharmacyId,
       );
 
-      print('Pickup status update result: $success');
+      if (!mounted) return;
 
-      if (success && mounted) {
-        // Clear images for this pharmacy
-        setState(() {
-          _pharmacyImages.remove(pharmacyId);
-          _imagesUploaded.remove(pharmacyId);
-        });
-
-        _showSuccessSnackbar('Pharmacy marked as picked up');
-
-        // Reload the order to get updated pharmacyResponses array
-        await provider.loadOrder(widget.orderId, widget.riderId);
-
-        print('Order reloaded. pharmacyResponses count: ${provider.currentOrder?.pharmacyResponses.length ?? 0}');
-        
-        // Re-check pharmacy status after reload
-        _checkPharmacyStatus();
-        
-        // If still on this screen (there are more accepted pharmacies), rebuild
-        if (mounted) {
-          setState(() {}); 
-        }
-      } else {
-        _showErrorSnackbar('Failed to update status');
+      if (!success) {
+        _showErrorSnackbar(
+          provider.error ?? 'Failed to update pharmacy status',
+        );
+        return;
       }
+
+      // Clear local images
+      setState(() {
+        _pharmacyImages.remove(pharmacyId);
+        _imagesUploaded.remove(pharmacyId);
+      });
+
+      _showSuccessSnackbar('Pharmacy marked as picked up');
+
+      // Get updated pending pharmacies count
+      final remainingCount = provider.pendingPharmacies.length;
+
+      // Navigate to completion screen
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PharmacyPickupScreen(
+              orderId: widget.orderId,
+              riderId: widget.riderId,
+            ),
+          ),
+        );
+      }
+
     } catch (e) {
       print('Error in handlePharmacyPickup: $e');
-      _showErrorSnackbar('Error: ${e.toString()}');
+      if (mounted) {
+        _showErrorSnackbar('Something went wrong. Please try again.');
+      }
     } finally {
       if (mounted) {
-        setState(() {
-          _isUpdatingStatus = false;
-        });
+        setState(() => _isUpdatingStatus = false);
       }
     }
   }
@@ -339,12 +338,22 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
     );
   }
 
-  // Get the current accepted pharmacy (the one with status "Accepted")
   PendingPharmacy? _getCurrentPharmacy(RiderOrderProvider provider) {
     final acceptedPharmacies = provider.acceptedPharmacies;
     
     if (acceptedPharmacies.isEmpty) return null;
     return acceptedPharmacies.first;
+  }
+
+  void _navigateToOrderDelivered() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OrderDeliveredModal(
+          orderId: widget.orderId,
+        ),
+      ),
+    );
   }
 
   @override
@@ -397,11 +406,21 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
           );
         }
 
-        // Get the current accepted pharmacy to process
+        // Check if all pharmacies are picked up
+        if (provider.hasNoPendingPharmacies) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _navigateToOrderDelivered();
+          });
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
         final currentPharmacy = _getCurrentPharmacy(provider);
         
         if (currentPharmacy == null) {
-          // No accepted pharmacies - will navigate in _checkPharmacyStatus
           return const Scaffold(
             body: Center(
               child: CircularProgressIndicator(),
@@ -428,12 +447,10 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
           deliveryLat = userLocation.coordinates[1];
         }
 
-        // Check if images are uploaded for current pharmacy
         final bool imagesUploaded = _imagesUploaded[currentPharmacy.pharmacyId] ?? false;
         final bool hasImages = _pharmacyImages.containsKey(currentPharmacy.pharmacyId) && 
                               _pharmacyImages[currentPharmacy.pharmacyId]!.isNotEmpty;
 
-        // Count total pending pharmacies from pharmacyResponses array
         final totalPendingCount = provider.pendingPharmacies.length;
 
         return Scaffold(
@@ -885,7 +902,7 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                                 ),
                                 child: TextButton(
                                   onPressed: totalPendingCount == 0
-                                      ? _navigateToUserScreen
+                                      ? _navigateToOrderDelivered
                                       : null,
                                   child: Text(
                                     totalPendingCount == 0

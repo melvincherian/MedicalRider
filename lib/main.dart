@@ -6,6 +6,7 @@ import 'package:medical_delivery_app/providers/create_query_provider.dart';
 import 'package:medical_delivery_app/providers/dashboard_provider.dart';
 import 'package:medical_delivery_app/providers/document_provider.dart';
 import 'package:medical_delivery_app/providers/forgot_password_provider.dart';
+import 'package:medical_delivery_app/providers/history_provider.dart';
 // import 'package:medical_delivery_app/providers/accept_pickup_provider.dart';
 // import 'package:medical_delivery_app/providers/add_bankdetails_provider.dart';
 // import 'package:medical_delivery_app/providers/chart_provider.dart';
@@ -19,6 +20,7 @@ import 'package:medical_delivery_app/providers/login_provider.dart';
 import 'package:medical_delivery_app/providers/navbar_provider.dart';
 import 'package:medical_delivery_app/providers/new_order_provider.dart';
 import 'package:medical_delivery_app/providers/notification_provider.dart';
+import 'package:medical_delivery_app/providers/pending_accepted_order_provider.dart';
 import 'package:medical_delivery_app/providers/profile_provider.dart';
 import 'package:medical_delivery_app/providers/rider_order_provider.dart';
 import 'package:medical_delivery_app/providers/signup_provider.dart';
@@ -69,7 +71,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => AddBankDetailsProvider()),
         ChangeNotifierProvider(create: (context) => WithdrawWalletProvider()),
         ChangeNotifierProvider(create: (context) => ProfileProvider()),
-        // ChangeNotifierProvider(create: (context) => HistoryProvider()),
+        ChangeNotifierProvider(create: (context) => HistoryProvider()),
         // ChangeNotifierProvider(create: (context) => AcceptPickupProvider()),
         // ChangeNotifierProvider(create: (context) => OrderDeliveredProvider()),
         ChangeNotifierProvider(create: (context) => SignupProvider()),
@@ -82,6 +84,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => CreateQueryProvider()),
         ChangeNotifierProvider(create: (context) => ChatProvider()),
                 ChangeNotifierProvider(create: (context) => RiderOrderProvider()),
+                                ChangeNotifierProvider(create: (context) => PendingAcceptedOrderProvider()),
+
 
 
       ],

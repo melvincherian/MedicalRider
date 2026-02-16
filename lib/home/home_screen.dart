@@ -9,6 +9,7 @@ import 'package:medical_delivery_app/utils/helper_function.dart';
 // import 'package:medical_delivery_app/view/details/detail_screen.dart';
 import 'package:medical_delivery_app/view/locationsearch/location_search_screen.dart';
 import 'package:medical_delivery_app/view/notifications/notification_screen.dart';
+import 'package:medical_delivery_app/view/pending_pharmacies_screen.dart';
 import 'package:medical_delivery_app/widget/confirm_order_modal.dart';
 import 'package:medical_delivery_app/widget/order_delivered_modal.dart';
 import 'package:provider/provider.dart';
@@ -187,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             backgroundColor: Colors.transparent,
             isDismissible: false,
             enableDrag: false,
-            builder: (context) => OrderModal(
+            builder: (context) => OrderScreen(
               riderId: riderid.toString(),
               order: latestOrder,
               onOrderAccepted: () {
@@ -682,6 +683,206 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 // }
 
 
+// Future<void> _handleOrderButtonTap(
+//   BuildContext context,
+//   NewOrderProvider orderProvider,
+// ) async {
+//   _stopAlertSound();
+//   _hasShownModal = false;
+
+//   print('========== CHECKING ORDERS ==========');
+
+//   /// ======================
+//   /// FIRST: Pending Orders
+//   /// ======================
+//   if (orderProvider.pendingOrders.isNotEmpty) {
+//     final latestOrder = orderProvider.pendingOrders.first;
+
+//     final result = await showModalBottomSheet<bool>(
+//       context: context,
+//       isScrollControlled: true,
+//       backgroundColor: Colors.transparent,
+//       isDismissible: false,
+//       enableDrag: false,
+//       builder: (context) => OrderModal(
+//         riderId: riderid.toString(),
+//         order: latestOrder,
+//         onOrderAccepted: () {
+//           _stopAlertSound();
+//           _hasShownModal = false;
+//           _previousPendingOrdersCount--;
+//           Navigator.pop(context, true);
+//         },
+//         onOrderRejected: () {
+//           _stopAlertSound();
+//           _hasShownModal = false;
+//           _previousPendingOrdersCount--;
+//           Navigator.pop(context, false);
+//         },
+//       ),
+//     );
+
+//     if (result == true && mounted) {
+//       await Future.wait([
+//         context.read<DashboardProvider>().refreshDashboard(),
+//         context.read<NewOrderProvider>().refreshOrders(riderid),
+//       ]);
+
+//       if (mounted) {
+//         showModalBottomSheet(
+//           context: context,
+//           backgroundColor: Colors.transparent,
+//           isScrollControlled: true,
+//           isDismissible: false,
+//           enableDrag: false,
+//           builder: (_) => ConfirmOrderModal(
+//             orderId: latestOrder.id,
+//             riderId: riderid,
+//           ),
+//         );
+//       }
+//     }
+//     return;
+//   }
+
+//   /// ======================
+//   /// LOADING
+//   /// ======================
+//   showDialog(
+//     context: context,
+//     barrierDismissible: false,
+//     builder: (_) => const Center(child: CircularProgressIndicator()),
+//   );
+
+//   try {
+//     final riderId = context.read<ProfileProvider>().rider?.id ?? riderid;
+
+//     /// ======================
+//     /// SECOND: ACCEPTED API
+//     /// ======================
+//     final acceptedResponse = await http.get(
+//       Uri.parse(
+//         'http://31.97.206.144:7021/api/rider/acceptedorders/$riderId',
+//       ),
+//     );
+
+//     bool validAcceptedFound = false;
+
+//     if (acceptedResponse.statusCode == 200) {
+//       final acceptedData = json.decode(acceptedResponse.body);
+
+//       // ✅ CASE 1: API returned only message
+//       if (acceptedData.containsKey('message')) {
+//         print('⏭️ No accepted orders (message response)');
+//       }
+
+//       // ✅ CASE 2: acceptedOrder exists
+//       else if (acceptedData['acceptedOrder'] != null) {
+//         final acceptedOrder = acceptedData['acceptedOrder'];
+
+//         bool hasValidPharmacyResponses =
+//             acceptedOrder['pharmacyResponses'] is List &&
+//             acceptedOrder['pharmacyResponses'].isNotEmpty;
+
+//         if (hasValidPharmacyResponses &&
+//             acceptedOrder.containsKey('_id')) {
+
+//           validAcceptedFound = true;
+
+//           final orderId = acceptedOrder['_id'];
+//           print('✅ Valid accepted order: $orderId');
+
+//           if (mounted) Navigator.pop(context);
+
+//           if (mounted) {
+//             showModalBottomSheet(
+//               context: context,
+//               backgroundColor: Colors.transparent,
+//               isScrollControlled: true,
+//               isDismissible: false,
+//               enableDrag: false,
+//               builder: (_) => ConfirmOrderModal(
+//                 orderId: orderId,
+//                 riderId: riderId,
+//               ),
+//             );
+//           }
+//           return;
+//         }
+//       }
+//     }
+
+//     /// ======================
+//     /// THIRD: PICKED UP API
+//     /// ======================
+//     if (!validAcceptedFound) {
+//       print('➡️ Checking picked up orders...');
+
+//       final pickedUpResponse = await http.get(
+//         Uri.parse(
+//           'http://31.97.206.144:7021/api/rider/pickeduporders/$riderId',
+//         ),
+//       );
+
+//       if (pickedUpResponse.statusCode == 200) {
+//         final pickedUpData = json.decode(pickedUpResponse.body);
+
+//         if (pickedUpData['pickedUpOrders'] is List &&
+//             pickedUpData['pickedUpOrders'].isNotEmpty) {
+
+//           final firstOrder = pickedUpData['pickedUpOrders'][0];
+
+//           String? orderId =
+//               firstOrder['_id'] ?? firstOrder['order']?['_id'];
+
+//           if (orderId != null) {
+//             print('✅ Picked up order found: $orderId');
+
+//             if (mounted) Navigator.pop(context);
+
+//             Navigator.push(
+//               context,
+//               MaterialPageRoute(
+//                 builder: (_) =>
+//                     OrderDeliveredModal(orderId: orderId.toString()),
+//               ),
+//             );
+//             return;
+//           }
+//         }
+//       }
+//     }
+
+//     /// ======================
+//     /// NO ORDERS
+//     /// ======================
+//     if (mounted) Navigator.pop(context);
+
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       const SnackBar(
+//         content: Text('No active orders found'),
+//         backgroundColor: Colors.orange,
+//       ),
+//     );
+
+//   } catch (e) {
+//     if (mounted) Navigator.pop(context);
+
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       const SnackBar(
+//         content: Text('Error loading orders'),
+//         backgroundColor: Colors.red,
+//       ),
+//     );
+//   }
+
+//   print('========== ORDER CHECK COMPLETE ==========');
+// }
+
+
+
+
+
 Future<void> _handleOrderButtonTap(
   BuildContext context,
   NewOrderProvider orderProvider,
@@ -692,7 +893,7 @@ Future<void> _handleOrderButtonTap(
   print('========== CHECKING ORDERS ==========');
 
   /// ======================
-  /// FIRST: Pending Orders
+  /// FIRST: Pending Orders (New Orders)
   /// ======================
   if (orderProvider.pendingOrders.isNotEmpty) {
     final latestOrder = orderProvider.pendingOrders.first;
@@ -703,7 +904,7 @@ Future<void> _handleOrderButtonTap(
       backgroundColor: Colors.transparent,
       isDismissible: false,
       enableDrag: false,
-      builder: (context) => OrderModal(
+      builder: (context) => OrderScreen(
         riderId: riderid.toString(),
         order: latestOrder,
         onOrderAccepted: () {
@@ -757,7 +958,7 @@ Future<void> _handleOrderButtonTap(
     final riderId = context.read<ProfileProvider>().rider?.id ?? riderid;
 
     /// ======================
-    /// SECOND: ACCEPTED API
+    /// SECOND: ACCEPTED ORDERS API
     /// ======================
     final acceptedResponse = await http.get(
       Uri.parse(
@@ -765,31 +966,24 @@ Future<void> _handleOrderButtonTap(
       ),
     );
 
-    bool validAcceptedFound = false;
+    bool orderFound = false;
 
     if (acceptedResponse.statusCode == 200) {
       final acceptedData = json.decode(acceptedResponse.body);
 
-      // ✅ CASE 1: API returned only message
-      if (acceptedData.containsKey('message')) {
-        print('⏭️ No accepted orders (message response)');
-      }
-
-      // ✅ CASE 2: acceptedOrder exists
-      else if (acceptedData['acceptedOrder'] != null) {
+      // Check if acceptedOrder exists
+      if (acceptedData['acceptedOrder'] != null && acceptedData['acceptedOrder'] is Map) {
         final acceptedOrder = acceptedData['acceptedOrder'];
-
+        
+        // Check if it has valid pharmacy responses
         bool hasValidPharmacyResponses =
             acceptedOrder['pharmacyResponses'] is List &&
-            acceptedOrder['pharmacyResponses'].isNotEmpty;
+            (acceptedOrder['pharmacyResponses'] as List).isNotEmpty;
 
-        if (hasValidPharmacyResponses &&
-            acceptedOrder.containsKey('_id')) {
-
-          validAcceptedFound = true;
-
+        if (hasValidPharmacyResponses && acceptedOrder.containsKey('_id')) {
+          orderFound = true;
           final orderId = acceptedOrder['_id'];
-          print('✅ Valid accepted order: $orderId');
+          print('✅ Valid accepted order found: $orderId');
 
           if (mounted) Navigator.pop(context);
 
@@ -812,9 +1006,64 @@ Future<void> _handleOrderButtonTap(
     }
 
     /// ======================
-    /// THIRD: PICKED UP API
+    /// THIRD: PENDING ACCEPTED ORDERS API (Pharmacy Accepted)
     /// ======================
-    if (!validAcceptedFound) {
+    if (!orderFound) {
+      print('➡️ Checking pending accepted orders (pharmacy accepted)...');
+      
+      final pendingAcceptedResponse = await http.get(
+        Uri.parse(
+          'http://31.97.206.144:7021/api/rider/pendingacceptedorders/$riderId',
+        ),
+      );
+
+      if (pendingAcceptedResponse.statusCode == 200) {
+        final pendingAcceptedData = json.decode(pendingAcceptedResponse.body);
+        
+        // Check if there are newOrders with pharmacy accepted status
+        if (pendingAcceptedData['success'] == true && 
+            pendingAcceptedData['newOrders'] is List &&
+            (pendingAcceptedData['newOrders'] as List).isNotEmpty) {
+          
+          final newOrders = pendingAcceptedData['newOrders'] as List;
+          print('Found ${newOrders.length} pending accepted orders');
+          
+          // Take the first order
+          final firstOrder = newOrders.first;
+          
+          if (firstOrder.containsKey('_id')) {
+            orderFound = true;
+            final orderId = firstOrder['_id'];
+            print('✅ Pending accepted order found: $orderId');
+            
+            if (mounted) Navigator.pop(context);
+            
+            if (mounted) {
+              // Navigate to PharmacyPickupScreen instead of ConfirmOrderModal
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PharmacyPickupScreen(
+                    orderId: orderId,
+                    riderId: riderId,
+                  ),
+                ),
+              );
+            }
+            return;
+          }
+        } else {
+          print('❌ No pending accepted orders found');
+        }
+      } else {
+        print('❌ Failed to fetch pending accepted orders: ${pendingAcceptedResponse.statusCode}');
+      }
+    }
+
+    /// ======================
+    /// FOURTH: PICKED UP ORDERS API
+    /// ======================
+    if (!orderFound) {
       print('➡️ Checking picked up orders...');
 
       final pickedUpResponse = await http.get(
@@ -827,7 +1076,7 @@ Future<void> _handleOrderButtonTap(
         final pickedUpData = json.decode(pickedUpResponse.body);
 
         if (pickedUpData['pickedUpOrders'] is List &&
-            pickedUpData['pickedUpOrders'].isNotEmpty) {
+            (pickedUpData['pickedUpOrders'] as List).isNotEmpty) {
 
           final firstOrder = pickedUpData['pickedUpOrders'][0];
 
@@ -835,6 +1084,7 @@ Future<void> _handleOrderButtonTap(
               firstOrder['_id'] ?? firstOrder['order']?['_id'];
 
           if (orderId != null) {
+            orderFound = true;
             print('✅ Picked up order found: $orderId');
 
             if (mounted) Navigator.pop(context);
@@ -853,23 +1103,29 @@ Future<void> _handleOrderButtonTap(
     }
 
     /// ======================
-    /// NO ORDERS
+    /// NO ORDERS FOUND
     /// ======================
-    if (mounted) Navigator.pop(context);
+    if (!orderFound) {
+      print('❌ No orders found in any state');
+      if (mounted) Navigator.pop(context);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('No active orders found'),
-        backgroundColor: Colors.orange,
-      ),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No active orders found'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
 
   } catch (e) {
+    print('❌ Error in order check: $e');
+    print('Stack trace: ${StackTrace.current}');
+    
     if (mounted) Navigator.pop(context);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Error loading orders'),
+      SnackBar(
+        content: Text('Error loading orders: $e'),
         backgroundColor: Colors.red,
       ),
     );

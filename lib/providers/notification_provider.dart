@@ -3,6 +3,7 @@ import 'package:medical_delivery_app/models/notification_model.dart';
 import 'package:medical_delivery_app/services/notification_service.dart';
 
 enum NotificationState { initial, loading, loaded, error, empty }
+enum DeleteState { initial, loading, success, error }
 
 class NotificationProvider extends ChangeNotifier {
   // Private variables
@@ -12,6 +13,10 @@ class NotificationProvider extends ChangeNotifier {
   NotificationState _state = NotificationState.initial;
   String _errorMessage = '';
   int _unreadCount = 0;
+  
+  // Delete operation state
+  DeleteState _deleteState = DeleteState.initial;
+  String _deleteError = '';
 
   // Getters
   List<NotificationModel> get notifications => _notifications;
@@ -24,6 +29,11 @@ class NotificationProvider extends ChangeNotifier {
   bool get hasError => _state == NotificationState.error;
   bool get isEmpty => _state == NotificationState.empty;
   bool get hasNotifications => _notifications.isNotEmpty;
+  
+  // Delete operation getters
+  DeleteState get deleteState => _deleteState;
+  String get deleteError => _deleteError;
+  bool get isDeleting => _deleteState == DeleteState.loading;
 
   /// Fetch notifications from API
   Future<void> fetchNotifications() async {
@@ -62,6 +72,37 @@ class NotificationProvider extends ChangeNotifier {
   Future<void> refreshNotifications() async {
     await fetchNotifications();
   }
+
+  /// Delete notifications
+/// Delete notifications
+Future<void> deleteNotifications(List<String> notificationIds) async {
+  if (notificationIds.isEmpty) return;
+  
+  try {
+    _deleteState = DeleteState.loading;
+    _deleteError = '';
+    notifyListeners();
+
+    final success = await NotificationService.deleteNotifications(notificationIds);
+    
+    if (success) {
+      // Instead of just removing from local lists, we should refresh the notifications
+      // to get the updated list from the server
+      await fetchNotifications();
+      
+      _deleteState = DeleteState.success;
+    } else {
+      _deleteState = DeleteState.error;
+      _deleteError = 'Failed to delete notifications';
+    }
+  } catch (e) {
+    _deleteState = DeleteState.error;
+    _deleteError = e.toString();
+    print('Error deleting notifications: $e');
+  } finally {
+    notifyListeners();
+  }
+}
 
   /// Mark notification as read
   Future<void> markAsRead(String notificationId) async {
@@ -107,6 +148,13 @@ class NotificationProvider extends ChangeNotifier {
     _earlierNotifications = [];
     _unreadCount = 0;
     _state = NotificationState.empty;
+    notifyListeners();
+  }
+
+  /// Reset delete state
+  void resetDeleteState() {
+    _deleteState = DeleteState.initial;
+    _deleteError = '';
     notifyListeners();
   }
 

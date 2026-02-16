@@ -167,12 +167,7 @@ class NewOrderProvider extends ChangeNotifier {
       );
       
       if (success) {
-        _updateMessage = status == 'Accepted' 
-            ? 'Order accepted successfully' 
-            : status == 'PickedUp'
-                ? 'Pickup confirmed successfully'
-                : 'Order rejected successfully';
-        
+        _updateMessage = 'Order accepted successfully';
         // Remove the order from pending list if rejected
         if (status == 'Rejected') {
           _pendingOrders.removeWhere((order) => order.id == orderId);
