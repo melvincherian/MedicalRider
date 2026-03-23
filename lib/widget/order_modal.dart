@@ -171,7 +171,7 @@ class _OrderScreenState extends State<OrderScreen> {
                       const SizedBox(height: 8),
 
                       Text(
-                        '₹${order.estimatedEarning.toStringAsFixed(2)}',
+                        '₹${double.parse(order.estimatedEarning.toStringAsFixed(2))}',
                         style: const TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,

@@ -146,19 +146,6 @@
 //   }
 // }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 // add_account_details.dart
 import 'package:flutter/material.dart';
 import 'package:medical_delivery_app/providers/add_bankdetails_provider.dart';
@@ -173,7 +160,7 @@ class AddAccountDetails extends StatefulWidget {
 
 class _AddAccountDetailsState extends State<AddAccountDetails> {
   final _formKey = GlobalKey<FormState>();
-  
+
   // Controllers for form fields
   final _accountHolderNameController = TextEditingController();
   final _accountNumberController = TextEditingController();
@@ -190,6 +177,38 @@ class _AddAccountDetailsState extends State<AddAccountDetails> {
     _bankNameController.dispose();
     _upiIdController.dispose();
     super.dispose();
+  }
+
+  String? validateIFSCCode(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'IFSC code is required';
+    }
+
+    final trimmed = value.trim().toUpperCase();
+
+    // Must be exactly 11 characters
+    if (trimmed.length != 11) {
+      return 'IFSC code must be exactly 11 characters';
+    }
+
+    // First 4 characters must be uppercase letters (bank code)
+    final bankCodeRegex = RegExp(r'^[A-Z]{4}');
+    if (!bankCodeRegex.hasMatch(trimmed)) {
+      return 'First 4 characters must be letters (bank code)';
+    }
+
+    // 5th character must be '0'
+    if (trimmed[4] != '0') {
+      return '5th character must be 0';
+    }
+
+    // Last 6 characters must be alphanumeric
+    final lastSixRegex = RegExp(r'^[A-Z0-9]{6}$');
+    if (!lastSixRegex.hasMatch(trimmed.substring(5))) {
+      return 'Last 6 characters must be letters or digits';
+    }
+
+    return null; // Valid
   }
 
   void _showSuccessDialog(String message) {
@@ -251,8 +270,11 @@ class _AddAccountDetailsState extends State<AddAccountDetails> {
       return;
     }
 
-    final provider = Provider.of<AddBankDetailsProvider>(context, listen: false);
-    
+    final provider = Provider.of<AddBankDetailsProvider>(
+      context,
+      listen: false,
+    );
+
     final success = await provider.addBankDetails(
       accountHolderName: _accountHolderNameController.text.trim(),
       accountNumber: _accountNumberController.text.trim(),
@@ -310,8 +332,11 @@ class _AddAccountDetailsState extends State<AddAccountDetails> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.error_outline, 
-                                   color: Colors.red.shade600, size: 20),
+                              Icon(
+                                Icons.error_outline,
+                                color: Colors.red.shade600,
+                                size: 20,
+                              ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
@@ -324,15 +349,18 @@ class _AddAccountDetailsState extends State<AddAccountDetails> {
                               ),
                               IconButton(
                                 onPressed: () => provider.clearError(),
-                                icon: Icon(Icons.close, 
-                                          color: Colors.red.shade600, size: 18),
+                                icon: Icon(
+                                  Icons.close,
+                                  color: Colors.red.shade600,
+                                  size: 18,
+                                ),
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
                               ),
                             ],
                           ),
                         ),
-                      
+
                       _buildTextField(
                         controller: _accountHolderNameController,
                         label: "Account Holder Name",
@@ -350,14 +378,25 @@ class _AddAccountDetailsState extends State<AddAccountDetails> {
                         validator: provider.validateAccountNumber,
                       ),
                       const SizedBox(height: 16),
+
+                      // _buildTextField(
+                      //   controller: _ifscCodeController,
+                      //   label: "IFSC Code",
+                      //   hint: "Enter IFSC code (e.g., HDFC0001234)",
+                      //   icon: Icons.code,
+                      //   textCapitalization: TextCapitalization.characters,
+                      //   validator: provider.validateIFSCCode,
+                      // ),
                       _buildTextField(
                         controller: _ifscCodeController,
                         label: "IFSC Code",
                         hint: "Enter IFSC code (e.g., HDFC0001234)",
                         icon: Icons.code,
                         textCapitalization: TextCapitalization.characters,
+                        maxLength: 11, // 👈
                         validator: provider.validateIFSCCode,
                       ),
+
                       const SizedBox(height: 16),
                       _buildTextField(
                         controller: _bankNameController,
@@ -395,7 +434,8 @@ class _AddAccountDetailsState extends State<AddAccountDetails> {
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white),
+                                      Colors.white,
+                                    ),
                                   ),
                                 )
                               : const Text(
@@ -412,14 +452,12 @@ class _AddAccountDetailsState extends State<AddAccountDetails> {
                   ),
                 ),
               ),
-              
+
               // Loading overlay
               if (provider.isLoading)
                 Container(
                   color: Colors.black.withOpacity(0.3),
-                  child: const Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                  child: const Center(child: CircularProgressIndicator()),
                 ),
             ],
           );
@@ -436,6 +474,7 @@ class _AddAccountDetailsState extends State<AddAccountDetails> {
     TextInputType keyboardType = TextInputType.text,
     TextCapitalization textCapitalization = TextCapitalization.none,
     String? Function(String?)? validator,
+    int? maxLength,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -453,13 +492,16 @@ class _AddAccountDetailsState extends State<AddAccountDetails> {
           controller: controller,
           keyboardType: keyboardType,
           textCapitalization: textCapitalization,
+          maxLength: maxLength,
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: Colors.blue),
             hintText: hint,
             filled: true,
             fillColor: Colors.grey.shade100,
-            contentPadding:
-                const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 14,
+              horizontal: 12,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade400),

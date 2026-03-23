@@ -47,16 +47,10 @@ void main() {
   runApp(const MyApp());
 }
 
-
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class MyApp extends StatelessWidget {
-
-  
   const MyApp({super.key});
-
-
-  
 
   // This widget is the root of your application.
   @override
@@ -83,15 +77,14 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => LocationProvider()),
         ChangeNotifierProvider(create: (context) => CreateQueryProvider()),
         ChangeNotifierProvider(create: (context) => ChatProvider()),
-                ChangeNotifierProvider(create: (context) => RiderOrderProvider()),
-                                ChangeNotifierProvider(create: (context) => PendingAcceptedOrderProvider()),
-
-
-
+        ChangeNotifierProvider(create: (context) => RiderOrderProvider()),
+        ChangeNotifierProvider(
+          create: (context) => PendingAcceptedOrderProvider(),
+        ),
       ],
       child: MaterialApp(
         navigatorKey: navigatorKey,
-        title: 'Medical Delivery App',
+        title: 'CLYNIX RIDER',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         ),

@@ -5,7 +5,7 @@ import 'package:medical_delivery_app/services/add_bankdetails_service.dart';
 
 class AddBankDetailsProvider extends ChangeNotifier {
   final AddBankDetailsService _service = AddBankDetailsService();
-  
+
   bool _isLoading = false;
   String? _errorMessage;
   BankDetailsResponse? _bankDetailsResponse;
@@ -82,7 +82,7 @@ class AddBankDetailsProvider extends ChangeNotifier {
       if (bankDetails != null) {
         _bankDetailsList = bankDetails;
       }
-      
+
       _setLoading(false);
     } catch (e) {
       _setError(e.toString());
@@ -124,6 +124,18 @@ class AddBankDetailsProvider extends ChangeNotifier {
     }
     return null;
   }
+
+  //   String? validateIFSCCode(String? value) {
+  //   if (value == null || value.trim().isEmpty) {
+  //     return 'IFSC code is required';
+  //   }
+
+  //   if (value.trim().length != 11) {
+  //     return 'IFSC code must be exactly 11 characters';
+  //   }
+
+  //   return null;
+  // }
 
   String? validateBankName(String? value) {
     if (value == null || value.trim().isEmpty) {
