@@ -1,3 +1,4 @@
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -33,7 +34,7 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
   bool _isUpdatingStatus = false;
   final RiderOrderService _service = RiderOrderService();
   final ImagePicker _imagePicker = ImagePicker();
-
+  
   final Map<String, List<File>> _pharmacyImages = {};
   final Map<String, bool> _isUploading = {};
   final Map<String, bool> _imagesUploaded = {};
@@ -44,36 +45,15 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
     _loadOrder();
   }
 
-  // Future<void> _loadOrder() async {
-  //   print('=== LOADING ORDER IN CONFIRM MODAL ===');
-  //   print('Order ID: ${widget.orderId}');
-  //   print('Rider ID: ${widget.riderId}');
-
-  //   final provider = Provider.of<RiderOrderProvider>(context, listen: false);
-  //   await provider.loadOrder(widget.orderId, widget.riderId);
-
-  //   print('Order loaded. pharmacyResponses count: ${provider.currentOrder?.pharmacyResponses.length ?? 0}');
-  // }
-
   Future<void> _loadOrder() async {
     print('=== LOADING ORDER IN CONFIRM MODAL ===');
     print('Order ID: ${widget.orderId}');
     print('Rider ID: ${widget.riderId}');
-
+    
     final provider = Provider.of<RiderOrderProvider>(context, listen: false);
-
-    // Reset any previous error state before loading
-
     await provider.loadOrder(widget.orderId, widget.riderId);
-
-    print(
-      'Order loaded. pharmacyResponses count: ${provider.currentOrder?.pharmacyResponses.length ?? 0}',
-    );
-
-    // Force a rebuild after loading completes
-    if (mounted) {
-      setState(() {});
-    }
+    
+    print('Order loaded. pharmacyResponses count: ${provider.currentOrder?.pharmacyResponses.length ?? 0}');
   }
 
   Future<void> _openGoogleMaps(double latitude, double longitude) async {
@@ -115,33 +95,34 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
     }
   }
 
-  Future<void> _pickImage(String pharmacyId) async {
-    try {
-      final status = await Permission.camera.request();
+Future<void> _pickImage(String pharmacyId) async {
+  try {
+    final status = await Permission.camera.request();
 
-      if (!status.isGranted) {
-        _showErrorSnackbar('Camera permission is required');
-        return;
-      }
-
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 70,
-      );
-
-      if (!mounted) return;
-
-      if (image != null) {
-        setState(() {
-          _pharmacyImages.putIfAbsent(pharmacyId, () => []);
-          _pharmacyImages[pharmacyId]!.add(File(image.path));
-          _imagesUploaded[pharmacyId] = false;
-        });
-      }
-    } catch (e) {
-      _showErrorSnackbar('Failed to open camera');
+    if (!status.isGranted) {
+      _showErrorSnackbar('Camera permission is required');
+      return;
     }
+
+    final XFile? image = await _imagePicker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 70,
+    );
+
+    if (!mounted) return;
+
+    if (image != null) {
+      setState(() {
+        _pharmacyImages.putIfAbsent(pharmacyId, () => []);
+        _pharmacyImages[pharmacyId]!.add(File(image.path));
+        _imagesUploaded[pharmacyId] = false;
+      });
+    }
+  } catch (e) {
+    _showErrorSnackbar('Failed to open camera');
   }
+}
+
 
   void _removeImage(String pharmacyId, int index) {
     setState(() {
@@ -155,100 +136,100 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
     });
   }
 
-  Future<bool> _uploadDeliveryProof(String pharmacyId) async {
-    // Validate images
-    if (!_pharmacyImages.containsKey(pharmacyId) ||
-        _pharmacyImages[pharmacyId]!.isEmpty) {
-      _showErrorSnackbar('Please take at least one photo');
-      return false;
+Future<bool> _uploadDeliveryProof(String pharmacyId) async {
+  // Validate images
+  if (!_pharmacyImages.containsKey(pharmacyId) ||
+      _pharmacyImages[pharmacyId]!.isEmpty) {
+    _showErrorSnackbar('Please take at least one photo');
+    return false;
+  }
+
+  // Start upload state
+  if (mounted) {
+    setState(() {
+      _isUploading[pharmacyId] = true;
+    });
+  }
+
+  try {
+    bool allUploadsSuccessful = true;
+
+    for (final image in _pharmacyImages[pharmacyId]!) {
+      final uri = Uri.parse(
+        'http://31.97.206.144:7021/api/rider/upload-medicine-proof/'
+        '${widget.riderId}/${widget.orderId}/$pharmacyId',
+      );
+
+      final request = http.MultipartRequest('POST', uri);
+
+      // Add image file
+      final multipartFile = await http.MultipartFile.fromPath(
+        'image',
+        image.path,
+      );
+      request.files.add(multipartFile);
+
+      // 🔍 PRINT REQUEST PAYLOAD
+      debugPrint('========== MULTIPART REQUEST ==========');
+      debugPrint('URL: ${request.url}');
+      debugPrint('Method: ${request.method}');
+      debugPrint('Headers: ${request.headers}');
+      debugPrint('Fields: ${request.fields}');
+      debugPrint('Files count: ${request.files.length}');
+      for (final file in request.files) {
+        debugPrint('File field: ${file.field}');
+        debugPrint('File filename: ${file.filename}');
+        debugPrint('File contentType: ${file.contentType}');
+        debugPrint('File length: ${file.length}');
+      }
+      debugPrint('=======================================');
+
+      // Send request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      // 🔍 PRINT RESPONSE
+      debugPrint('========== RESPONSE ==========');
+      debugPrint('Status code: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
+      debugPrint('=======================================');
+
+      // Validate response
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        allUploadsSuccessful = false;
+        break;
+      }
     }
 
-    // Start upload state
+    // Update UI after upload
     if (mounted) {
       setState(() {
-        _isUploading[pharmacyId] = true;
+        _isUploading[pharmacyId] = false;
+        if (allUploadsSuccessful) {
+          _imagesUploaded[pharmacyId] = true;
+        }
       });
     }
 
-    try {
-      bool allUploadsSuccessful = true;
-
-      for (final image in _pharmacyImages[pharmacyId]!) {
-        final uri = Uri.parse(
-          'http://31.97.206.144:7021/api/rider/upload-medicine-proof/'
-          '${widget.riderId}/${widget.orderId}/$pharmacyId',
-        );
-
-        final request = http.MultipartRequest('POST', uri);
-
-        // Add image file
-        final multipartFile = await http.MultipartFile.fromPath(
-          'image',
-          image.path,
-        );
-        request.files.add(multipartFile);
-
-        // 🔍 PRINT REQUEST PAYLOAD
-        debugPrint('========== MULTIPART REQUEST ==========');
-        debugPrint('URL: ${request.url}');
-        debugPrint('Method: ${request.method}');
-        debugPrint('Headers: ${request.headers}');
-        debugPrint('Fields: ${request.fields}');
-        debugPrint('Files count: ${request.files.length}');
-        for (final file in request.files) {
-          debugPrint('File field: ${file.field}');
-          debugPrint('File filename: ${file.filename}');
-          debugPrint('File contentType: ${file.contentType}');
-          debugPrint('File length: ${file.length}');
-        }
-        debugPrint('=======================================');
-
-        // Send request
-        final streamedResponse = await request.send();
-        final response = await http.Response.fromStream(streamedResponse);
-
-        // 🔍 PRINT RESPONSE
-        debugPrint('========== RESPONSE ==========');
-        debugPrint('Status code: ${response.statusCode}');
-        debugPrint('Response body: ${response.body}');
-        debugPrint('=======================================');
-
-        // Validate response
-        if (response.statusCode != 200 && response.statusCode != 201) {
-          allUploadsSuccessful = false;
-          break;
-        }
-      }
-
-      // Update UI after upload
-      if (mounted) {
-        setState(() {
-          _isUploading[pharmacyId] = false;
-          if (allUploadsSuccessful) {
-            _imagesUploaded[pharmacyId] = true;
-          }
-        });
-      }
-
-      // Show success message
-      if (allUploadsSuccessful) {
-        _showSuccessSnackbar('Photos uploaded successfully');
-      }
-
-      return allUploadsSuccessful;
-    } catch (e) {
-      // Error handling
-      if (mounted) {
-        setState(() {
-          _isUploading[pharmacyId] = false;
-          _imagesUploaded[pharmacyId] = false;
-        });
-      }
-
-      _showErrorSnackbar('Failed to upload images: $e');
-      return false;
+    // Show success message
+    if (allUploadsSuccessful) {
+      _showSuccessSnackbar('Photos uploaded successfully');
     }
+
+    return allUploadsSuccessful;
+  } catch (e) {
+    // Error handling
+    if (mounted) {
+      setState(() {
+        _isUploading[pharmacyId] = false;
+        _imagesUploaded[pharmacyId] = false;
+      });
+    }
+
+    _showErrorSnackbar('Failed to upload images: $e');
+    return false;
   }
+}
 
   Future<void> _handlePharmacyPickup(String pharmacyId) async {
     if (_isUpdatingStatus) return;
@@ -306,6 +287,7 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
           ),
         );
       }
+
     } catch (e) {
       print('Error in handlePharmacyPickup: $e');
       if (mounted) {
@@ -358,7 +340,7 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
 
   PendingPharmacy? _getCurrentPharmacy(RiderOrderProvider provider) {
     final acceptedPharmacies = provider.acceptedPharmacies;
-
+    
     if (acceptedPharmacies.isEmpty) return null;
     return acceptedPharmacies.first;
   }
@@ -367,7 +349,9 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => OrderDeliveredModal(orderId: widget.orderId),
+        builder: (context) => OrderDeliveredModal(
+          orderId: widget.orderId,
+        ),
       ),
     );
   }
@@ -376,32 +360,10 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
   Widget build(BuildContext context) {
     return Consumer<RiderOrderProvider>(
       builder: (context, provider, child) {
-        // if (provider.isLoading && provider.currentOrder == null) {
-        //   return const Scaffold(
-        //     body: Center(
-        //       child: CircularProgressIndicator(),
-        //     ),
-        //   );
-        // }
-
-        // AFTER (fixed):
         if (provider.isLoading && provider.currentOrder == null) {
-          return Scaffold(
+          return const Scaffold(
             body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 16),
-                  const Text('Loading order...'),
-                  const SizedBox(height: 16),
-                  // Safety escape if stuck
-                  TextButton(
-                    onPressed: _loadOrder,
-                    child: const Text('Taking too long? Tap to retry'),
-                  ),
-                ],
-              ),
+              child: CircularProgressIndicator(),
             ),
           );
         }
@@ -437,7 +399,11 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
 
         final order = provider.currentOrder;
         if (order == null) {
-          return const Scaffold(body: Center(child: Text('Order not found')));
+          return const Scaffold(
+            body: Center(
+              child: Text('Order not found'),
+            ),
+          );
         }
 
         // Check if all pharmacies are picked up
@@ -446,22 +412,26 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
             _navigateToOrderDelivered();
           });
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
           );
         }
 
         final currentPharmacy = _getCurrentPharmacy(provider);
-
+        
         if (currentPharmacy == null) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
           );
         }
 
         // Get items for this pharmacy
         final List<OrderItem> pharmacyItems = [];
         for (var item in order.orderItems) {
-          if (item.medicineId != null &&
+          if (item.medicineId != null && 
               item.medicineId!.pharmacyId.id == currentPharmacy.pharmacyId) {
             pharmacyItems.add(item);
           }
@@ -471,17 +441,15 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
         final userLocation = order.userId.location;
         double? deliveryLat;
         double? deliveryLng;
-
+        
         if (userLocation.coordinates.length >= 2) {
           deliveryLng = userLocation.coordinates[0];
           deliveryLat = userLocation.coordinates[1];
         }
 
-        final bool imagesUploaded =
-            _imagesUploaded[currentPharmacy.pharmacyId] ?? false;
-        final bool hasImages =
-            _pharmacyImages.containsKey(currentPharmacy.pharmacyId) &&
-            _pharmacyImages[currentPharmacy.pharmacyId]!.isNotEmpty;
+        final bool imagesUploaded = _imagesUploaded[currentPharmacy.pharmacyId] ?? false;
+        final bool hasImages = _pharmacyImages.containsKey(currentPharmacy.pharmacyId) && 
+                              _pharmacyImages[currentPharmacy.pharmacyId]!.isNotEmpty;
 
         final totalPendingCount = provider.pendingPharmacies.length;
 
@@ -542,10 +510,7 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                 left: 16,
                 right: 16,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
@@ -560,11 +525,7 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
-                        Icons.shopping_bag,
-                        size: 16,
-                        color: Colors.blue,
-                      ),
+                      const Icon(Icons.shopping_bag, size: 16, color: Colors.blue),
                       const SizedBox(width: 8),
                       Text(
                         'Order #${order.id.substring(order.id.length - 6)}',
@@ -702,8 +663,7 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                                         const SizedBox(width: 12),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 currentPharmacy.pharmacyName,
@@ -733,50 +693,33 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                                   Padding(
                                     padding: const EdgeInsets.all(12),
                                     child: Column(
-                                      children: pharmacyItems.map<Widget>((
-                                        item,
-                                      ) {
+                                      children: pharmacyItems.map<Widget>((item) {
                                         final medicine = item.medicineId;
-                                        if (medicine == null)
-                                          return const SizedBox.shrink();
+                                        if (medicine == null) return const SizedBox.shrink();
 
                                         return Container(
-                                          margin: const EdgeInsets.only(
-                                            bottom: 8,
-                                          ),
+                                          margin: const EdgeInsets.only(bottom: 8),
                                           child: Row(
                                             children: [
                                               Container(
                                                 width: 40,
                                                 height: 40,
                                                 decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
+                                                  borderRadius: BorderRadius.circular(8),
                                                   color: Colors.grey[100],
                                                 ),
-                                                child:
-                                                    medicine.images.isNotEmpty
+                                                child: medicine.images.isNotEmpty
                                                     ? ClipRRect(
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              8,
-                                                            ),
+                                                        borderRadius: BorderRadius.circular(8),
                                                         child: Image.network(
                                                           medicine.images.first,
                                                           fit: BoxFit.cover,
-                                                          errorBuilder:
-                                                              (
-                                                                context,
-                                                                error,
-                                                                stackTrace,
-                                                              ) {
-                                                                return const Icon(
-                                                                  Icons
-                                                                      .medication,
-                                                                  color: Colors
-                                                                      .grey,
-                                                                );
-                                                              },
+                                                          errorBuilder: (context, error, stackTrace) {
+                                                            return const Icon(
+                                                              Icons.medication,
+                                                              color: Colors.grey,
+                                                            );
+                                                          },
                                                         ),
                                                       )
                                                     : const Icon(
@@ -787,19 +730,16 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                                               const SizedBox(width: 8),
                                               Expanded(
                                                 child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
                                                       medicine.name,
                                                       style: const TextStyle(
                                                         fontSize: 13,
-                                                        fontWeight:
-                                                            FontWeight.w500,
+                                                        fontWeight: FontWeight.w500,
                                                       ),
                                                       maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
+                                                      overflow: TextOverflow.ellipsis,
                                                     ),
                                                     Text(
                                                       'Qty: ${item.quantity}',
@@ -833,41 +773,28 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                                   // Upload Button
                                   if (hasImages && !imagesUploaded)
                                     Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 4,
-                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                                       child: SizedBox(
                                         width: double.infinity,
                                         height: 40,
                                         child: ElevatedButton(
-                                          onPressed:
-                                              (_isUploading[currentPharmacy
-                                                      .pharmacyId] ??
-                                                  false)
+                                          onPressed: (_isUploading[currentPharmacy.pharmacyId] ?? false)
                                               ? null
-                                              : () => _uploadDeliveryProof(
-                                                  currentPharmacy.pharmacyId,
-                                                ),
+                                              : () => _uploadDeliveryProof(currentPharmacy.pharmacyId),
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: Colors.blue,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
+                                              borderRadius: BorderRadius.circular(8),
                                             ),
                                           ),
-                                          child:
-                                              (_isUploading[currentPharmacy
-                                                      .pharmacyId] ??
-                                                  false)
+                                          child: (_isUploading[currentPharmacy.pharmacyId] ?? false)
                                               ? const SizedBox(
                                                   width: 20,
                                                   height: 20,
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                        color: Colors.white,
-                                                      ),
+                                                  child: CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                    color: Colors.white,
+                                                  ),
                                                 )
                                               : const Text(
                                                   'Upload Photos',
@@ -883,27 +810,17 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                                   // Uploaded status
                                   if (imagesUploaded)
                                     Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 4,
-                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                                       child: Container(
                                         width: double.infinity,
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 8,
-                                        ),
+                                        padding: const EdgeInsets.symmetric(vertical: 8),
                                         decoration: BoxDecoration(
                                           color: Colors.green.shade50,
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          border: Border.all(
-                                            color: Colors.green.shade200,
-                                          ),
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(color: Colors.green.shade200),
                                         ),
                                         child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
+                                          mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
                                             Icon(
                                               Icons.check_circle,
@@ -934,25 +851,21 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                                         child: ElevatedButton(
                                           onPressed: _isUpdatingStatus
                                               ? null
-                                              : () => _handlePharmacyPickup(
-                                                  currentPharmacy.pharmacyId,
-                                                ),
+                                              : () => _handlePharmacyPickup(currentPharmacy.pharmacyId),
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: Colors.green,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
+                                              borderRadius: BorderRadius.circular(8),
                                             ),
                                           ),
                                           child: _isUpdatingStatus
                                               ? const SizedBox(
                                                   width: 20,
                                                   height: 20,
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                        color: Colors.white,
-                                                      ),
+                                                  child: CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                    color: Colors.white,
+                                                  ),
                                                 )
                                               : const Text(
                                                   'Mark as Picked Up',
@@ -982,7 +895,7 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                               child: Container(
                                 height: 50,
                                 decoration: BoxDecoration(
-                                  color: totalPendingCount == 0
+                                  color: totalPendingCount == 0 
                                       ? const Color(0xFF5931DD)
                                       : Colors.grey,
                                   borderRadius: BorderRadius.circular(25),
@@ -1010,8 +923,7 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                             // Location Button
                             GestureDetector(
                               onTap: () {
-                                if (deliveryLat != null &&
-                                    deliveryLng != null) {
+                                if (deliveryLat != null && deliveryLng != null) {
                                   _openGoogleMaps(deliveryLat, deliveryLng);
                                 } else {
                                   _openGoogleMaps(
@@ -1060,12 +972,14 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
         children: [
           const Text(
             'Pickup Photos (Required)',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 8),
-
-          if (_pharmacyImages.containsKey(pharmacyId) &&
-              _pharmacyImages[pharmacyId]!.isNotEmpty)
+          
+          if (_pharmacyImages.containsKey(pharmacyId) && _pharmacyImages[pharmacyId]!.isNotEmpty)
             SizedBox(
               height: 60,
               child: ListView.builder(
@@ -1090,8 +1004,7 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                           ),
                         ),
                       ),
-                      if (!(_isUploading[pharmacyId] ?? false) &&
-                          !(_imagesUploaded[pharmacyId] ?? false))
+                      if (!(_isUploading[pharmacyId] ?? false) && !(_imagesUploaded[pharmacyId] ?? false))
                         Positioned(
                           top: 0,
                           right: 8,
@@ -1116,26 +1029,33 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                 },
               ),
             ),
-
+          
           const SizedBox(height: 8),
-
+          
           if (!(_imagesUploaded[pharmacyId] ?? false))
             GestureDetector(
               onTap: () => _pickImage(pharmacyId),
               child: Container(
                 height: 40,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.blue, width: 1.5),
+                  border: Border.all(
+                    color: Colors.blue,
+                    width: 1.5,
+                  ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.camera_alt, color: Colors.blue, size: 16),
+                    Icon(
+                      Icons.camera_alt,
+                      color: Colors.blue,
+                      size: 16,
+                    ),
                     const SizedBox(width: 8),
                     Text(
-                      (_pharmacyImages[pharmacyId]?.isEmpty ?? true)
-                          ? 'Add Photo'
+                      (_pharmacyImages[pharmacyId]?.isEmpty ?? true) 
+                          ? 'Add Photo' 
                           : 'Add More Photos',
                       style: TextStyle(
                         fontSize: 12,
@@ -1147,7 +1067,7 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                 ),
               ),
             ),
-
+          
           if (_isUploading[pharmacyId] ?? false)
             const Center(
               child: Padding(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:medical_delivery_app/home/navbar_screen.dart';
 import 'package:medical_delivery_app/models/new_order_model.dart';
-import 'package:medical_delivery_app/providers/rider_order_provider.dart';
 import 'package:medical_delivery_app/widget/confirm_order_modal.dart';
 import 'package:provider/provider.dart';
 import 'package:medical_delivery_app/providers/new_order_provider.dart';
@@ -36,9 +35,7 @@ class _OrderScreenState extends State<OrderScreen> {
     print('Order ID: ${widget.order.id}');
     print('Pharmacies count: ${widget.order.pharmacyPickups.length}');
     for (var i = 0; i < widget.order.pharmacyPickups.length; i++) {
-      print(
-        'Pharmacy $i: ${widget.order.pharmacyPickups[i].pharmacyName} - ID: ${widget.order.pharmacyPickups[i].pharmacyId}',
-      );
+      print('Pharmacy $i: ${widget.order.pharmacyPickups[i].pharmacyName} - ID: ${widget.order.pharmacyPickups[i].pharmacyId}');
     }
     print('========================');
   }
@@ -55,13 +52,12 @@ class _OrderScreenState extends State<OrderScreen> {
         print('Pharmacies Count: ${order.pharmacyPickups.length}');
         print('========================');
 
-        final canAcceptReject =
-            order.assignedRiderStatus.toLowerCase() == 'assigned';
+        final canAcceptReject = order.assignedRiderStatus.toLowerCase() == 'assigned';
 
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
-            toolbarHeight: kToolbarHeight + 80,
+              toolbarHeight: kToolbarHeight + 80,
 
             backgroundColor: Colors.white,
             elevation: 0,
@@ -70,7 +66,9 @@ class _OrderScreenState extends State<OrderScreen> {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const NavbarScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const NavbarScreen(),
+                  ),
                 );
               },
             ),
@@ -273,8 +271,7 @@ class _OrderScreenState extends State<OrderScreen> {
                               children: [
                                 CircleAvatar(
                                   radius: 20,
-                                  backgroundImage:
-                                      order.user.profileImage.isNotEmpty
+                                  backgroundImage: order.user.profileImage.isNotEmpty
                                       ? NetworkImage(order.user.profileImage)
                                       : null,
                                   child: order.user.profileImage.isEmpty
@@ -284,8 +281,7 @@ class _OrderScreenState extends State<OrderScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         order.user.name,
@@ -313,8 +309,7 @@ class _OrderScreenState extends State<OrderScreen> {
                       const SizedBox(height: 20),
 
                       // Pharmacy Selection Section
-                      if (order.pharmacyPickups.isNotEmpty &&
-                          canAcceptReject) ...[
+                      if (order.pharmacyPickups.isNotEmpty && canAcceptReject) ...[
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -390,31 +385,26 @@ class _OrderScreenState extends State<OrderScreen> {
                         // Pharmacy List
                         ...order.pharmacyPickups.asMap().entries.map((entry) {
                           final pharmacy = entry.value;
-                          final isSelected =
-                              _selectedPharmacyId == pharmacy.pharmacyId;
-
+                          final isSelected = _selectedPharmacyId == pharmacy.pharmacyId;
+                          
                           return GestureDetector(
                             onTap: () {
-                              print(
-                                'Tapped pharmacy: ${pharmacy.pharmacyName}, ID: ${pharmacy.pharmacyId}',
-                              );
+                              print('Tapped pharmacy: ${pharmacy.pharmacyName}, ID: ${pharmacy.pharmacyId}');
                               setState(() {
                                 _selectedPharmacyId = pharmacy.pharmacyId;
                               });
-                              print(
-                                'Selected pharmacy ID updated to: $_selectedPharmacyId',
-                              );
+                              print('Selected pharmacy ID updated to: $_selectedPharmacyId');
                             },
                             child: Container(
                               margin: const EdgeInsets.only(bottom: 12),
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: isSelected
+                                color: isSelected 
                                     ? Colors.blue.withOpacity(0.1)
                                     : Colors.white,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: isSelected
+                                  color: isSelected 
                                       ? Colors.blue
                                       : Colors.grey[300]!,
                                   width: isSelected ? 2 : 1.5,
@@ -437,12 +427,12 @@ class _OrderScreenState extends State<OrderScreen> {
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: isSelected
+                                        color: isSelected 
                                             ? Colors.blue
                                             : Colors.grey[400]!,
                                         width: 2,
                                       ),
-                                      color: isSelected
+                                      color: isSelected 
                                           ? Colors.blue
                                           : Colors.transparent,
                                     ),
@@ -455,7 +445,7 @@ class _OrderScreenState extends State<OrderScreen> {
                                         : null,
                                   ),
                                   const SizedBox(width: 12),
-
+                                  
                                   // Pharmacy Image
                                   Container(
                                     width: 50,
@@ -466,20 +456,17 @@ class _OrderScreenState extends State<OrderScreen> {
                                     ),
                                     child: pharmacy.pharmacyImage.isNotEmpty
                                         ? ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
+                                            borderRadius: BorderRadius.circular(8),
                                             child: Image.network(
                                               pharmacy.pharmacyImage,
                                               fit: BoxFit.cover,
-                                              errorBuilder:
-                                                  (context, error, stackTrace) {
-                                                    return const Icon(
-                                                      Icons.local_pharmacy,
-                                                      size: 25,
-                                                      color: Colors.deepPurple,
-                                                    );
-                                                  },
+                                              errorBuilder: (context, error, stackTrace) {
+                                                return const Icon(
+                                                  Icons.local_pharmacy,
+                                                  size: 25,
+                                                  color: Colors.deepPurple,
+                                                );
+                                              },
                                             ),
                                           )
                                         : const Icon(
@@ -493,17 +480,14 @@ class _OrderScreenState extends State<OrderScreen> {
                                   // Pharmacy Details
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           pharmacy.pharmacyName,
                                           style: TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.w600,
-                                            color: isSelected
-                                                ? Colors.blue[900]
-                                                : Colors.black87,
+                                            color: isSelected ? Colors.blue[900] : Colors.black87,
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -524,18 +508,14 @@ class _OrderScreenState extends State<OrderScreen> {
                                             Icon(
                                               Icons.medication,
                                               size: 14,
-                                              color: isSelected
-                                                  ? Colors.blue[700]
-                                                  : Colors.grey[600],
+                                              color: isSelected ? Colors.blue[700] : Colors.grey[600],
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
                                               '${pharmacy.totalItems} items',
                                               style: TextStyle(
                                                 fontSize: 11,
-                                                color: isSelected
-                                                    ? Colors.blue[700]
-                                                    : Colors.grey[600],
+                                                color: isSelected ? Colors.blue[700] : Colors.grey[600],
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
@@ -544,13 +524,11 @@ class _OrderScreenState extends State<OrderScreen> {
                                       ],
                                     ),
                                   ),
-
+                                  
                                   Icon(
                                     Icons.arrow_forward_ios,
                                     size: 16,
-                                    color: isSelected
-                                        ? Colors.blue
-                                        : Colors.grey[400],
+                                    color: isSelected ? Colors.blue : Colors.grey[400],
                                   ),
                                 ],
                               ),
@@ -620,7 +598,9 @@ class _OrderScreenState extends State<OrderScreen> {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey[300]!),
+                              border: Border.all(
+                                color: Colors.grey[300]!,
+                              ),
                             ),
                             child: Row(
                               children: [
@@ -633,29 +613,28 @@ class _OrderScreenState extends State<OrderScreen> {
                                   ),
                                   child: item.images.isNotEmpty
                                       ? ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
+                                          borderRadius: BorderRadius.circular(8),
                                           child: Image.network(
                                             item.images.first,
                                             fit: BoxFit.cover,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                                  return const Icon(
-                                                    Icons.medication,
-                                                    size: 30,
-                                                  );
-                                                },
+                                            errorBuilder: (context, error, stackTrace) {
+                                              return const Icon(
+                                                Icons.medication,
+                                                size: 30,
+                                              );
+                                            },
                                           ),
                                         )
-                                      : const Icon(Icons.medication, size: 30),
+                                      : const Icon(
+                                          Icons.medication,
+                                          size: 30,
+                                        ),
                                 ),
                                 const SizedBox(width: 12),
 
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         item.name,
@@ -755,11 +734,7 @@ class _OrderScreenState extends State<OrderScreen> {
                         child: GestureDetector(
                           onTap: _isAccepting || _selectedPharmacyId == null
                               ? null
-                              : () => _handleAcceptOrder(
-                                  context,
-                                  provider,
-                                  order,
-                                ),
+                              : () => _handleAcceptOrder(context, provider, order),
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 18),
                             decoration: BoxDecoration(
@@ -767,13 +742,10 @@ class _OrderScreenState extends State<OrderScreen> {
                                   ? Colors.grey[300]
                                   : const Color(0xFF5931DD),
                               borderRadius: BorderRadius.circular(14),
-                              boxShadow:
-                                  !_isAccepting && _selectedPharmacyId != null
+                              boxShadow: !_isAccepting && _selectedPharmacyId != null
                                   ? [
                                       BoxShadow(
-                                        color: const Color(
-                                          0xFF5931DD,
-                                        ).withOpacity(0.3),
+                                        color: const Color(0xFF5931DD).withOpacity(0.3),
                                         blurRadius: 8,
                                         offset: const Offset(0, 4),
                                       ),
@@ -787,10 +759,9 @@ class _OrderScreenState extends State<OrderScreen> {
                                       width: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                              Colors.white,
-                                            ),
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.white,
+                                        ),
                                       ),
                                     ),
                                   )
@@ -822,8 +793,7 @@ class _OrderScreenState extends State<OrderScreen> {
                     if (!canAcceptReject)
                       GestureDetector(
                         onTap: () {
-                          if (order.assignedRiderStatus.toLowerCase() ==
-                              'rejected') {
+                          if (order.assignedRiderStatus.toLowerCase() == 'rejected') {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
@@ -913,25 +883,22 @@ class _OrderScreenState extends State<OrderScreen> {
       // Use pushReplacement to navigate to ConfirmOrderModal
       if (!mounted) return;
 
-      final riderOrderProvider = Provider.of<RiderOrderProvider>(
-        context,
-        listen: false,
-      );
-      await riderOrderProvider.loadOrder(order.id, widget.riderId);
-
-      if (!mounted) return;
-
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) =>
-              ConfirmOrderModal(orderId: order.id, riderId: widget.riderId),
+          builder: (_) => ConfirmOrderModal(
+            orderId: order.id,
+            riderId: widget.riderId,
+          ),
         ),
       );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -964,7 +931,7 @@ class _OrderScreenState extends State<OrderScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Order Cancelled.!'),
+                        content: Text('Order Cancelled!'),
 
             // content: Text(provider.updateMessage),
             backgroundColor: Colors.orange,
@@ -974,7 +941,9 @@ class _OrderScreenState extends State<OrderScreen> {
         // Navigate back to home
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const NavbarScreen()),
+          MaterialPageRoute(
+            builder: (context) => const NavbarScreen(),
+          ),
         );
       } else {
         if (!mounted) return;
@@ -1011,13 +980,13 @@ class _OrderScreenState extends State<OrderScreen> {
 
   String _formatAddress(DeliveryAddress address) {
     final parts = <String>[];
-
+    
     if (address.house.isNotEmpty) parts.add(address.house);
     if (address.street.isNotEmpty) parts.add(address.street);
     if (address.city.isNotEmpty) parts.add(address.city);
     if (address.state.isNotEmpty) parts.add(address.state);
     if (address.pincode.isNotEmpty) parts.add(address.pincode);
-
+    
     return parts.join(', ');
   }
 
