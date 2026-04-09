@@ -1,4 +1,3 @@
-
 // import 'dart:io';
 // import 'package:flutter/material.dart';
 // import 'package:image_picker/image_picker.dart';
@@ -34,7 +33,7 @@
 //   bool _isUpdatingStatus = false;
 //   final RiderOrderService _service = RiderOrderService();
 //   final ImagePicker _imagePicker = ImagePicker();
-  
+
 //   final Map<String, List<File>> _pharmacyImages = {};
 //   final Map<String, bool> _isUploading = {};
 //   final Map<String, bool> _imagesUploaded = {};
@@ -49,10 +48,10 @@
 //     print('=== LOADING ORDER IN CONFIRM MODAL ===');
 //     print('Order ID: ${widget.orderId}');
 //     print('Rider ID: ${widget.riderId}');
-    
+
 //     final provider = Provider.of<RiderOrderProvider>(context, listen: false);
 //     await provider.loadOrder(widget.orderId, widget.riderId);
-    
+
 //     print('Order loaded. pharmacyResponses count: ${provider.currentOrder?.pharmacyResponses.length ?? 0}');
 //   }
 
@@ -122,7 +121,6 @@
 //     _showErrorSnackbar('Failed to open camera');
 //   }
 // }
-
 
 //   void _removeImage(String pharmacyId, int index) {
 //     setState(() {
@@ -340,7 +338,7 @@
 
 //   PendingPharmacy? _getCurrentPharmacy(RiderOrderProvider provider) {
 //     final acceptedPharmacies = provider.acceptedPharmacies;
-    
+
 //     if (acceptedPharmacies.isEmpty) return null;
 //     return acceptedPharmacies.first;
 //   }
@@ -419,7 +417,7 @@
 //         }
 
 //         final currentPharmacy = _getCurrentPharmacy(provider);
-        
+
 //         if (currentPharmacy == null) {
 //           return const Scaffold(
 //             body: Center(
@@ -431,7 +429,7 @@
 //         // Get items for this pharmacy
 //         final List<OrderItem> pharmacyItems = [];
 //         for (var item in order.orderItems) {
-//           if (item.medicineId != null && 
+//           if (item.medicineId != null &&
 //               item.medicineId!.pharmacyId.id == currentPharmacy.pharmacyId) {
 //             pharmacyItems.add(item);
 //           }
@@ -441,14 +439,14 @@
 //         final userLocation = order.userId.location;
 //         double? deliveryLat;
 //         double? deliveryLng;
-        
+
 //         if (userLocation.coordinates.length >= 2) {
 //           deliveryLng = userLocation.coordinates[0];
 //           deliveryLat = userLocation.coordinates[1];
 //         }
 
 //         final bool imagesUploaded = _imagesUploaded[currentPharmacy.pharmacyId] ?? false;
-//         final bool hasImages = _pharmacyImages.containsKey(currentPharmacy.pharmacyId) && 
+//         final bool hasImages = _pharmacyImages.containsKey(currentPharmacy.pharmacyId) &&
 //                               _pharmacyImages[currentPharmacy.pharmacyId]!.isNotEmpty;
 
 //         final totalPendingCount = provider.pendingPharmacies.length;
@@ -895,7 +893,7 @@
 //                               child: Container(
 //                                 height: 50,
 //                                 decoration: BoxDecoration(
-//                                   color: totalPendingCount == 0 
+//                                   color: totalPendingCount == 0
 //                                       ? const Color(0xFF5931DD)
 //                                       : Colors.grey,
 //                                   borderRadius: BorderRadius.circular(25),
@@ -978,7 +976,7 @@
 //             ),
 //           ),
 //           const SizedBox(height: 8),
-          
+
 //           if (_pharmacyImages.containsKey(pharmacyId) && _pharmacyImages[pharmacyId]!.isNotEmpty)
 //             SizedBox(
 //               height: 60,
@@ -1029,9 +1027,9 @@
 //                 },
 //               ),
 //             ),
-          
+
 //           const SizedBox(height: 8),
-          
+
 //           if (!(_imagesUploaded[pharmacyId] ?? false))
 //             GestureDetector(
 //               onTap: () => _pickImage(pharmacyId),
@@ -1054,8 +1052,8 @@
 //                     ),
 //                     const SizedBox(width: 8),
 //                     Text(
-//                       (_pharmacyImages[pharmacyId]?.isEmpty ?? true) 
-//                           ? 'Add Photo' 
+//                       (_pharmacyImages[pharmacyId]?.isEmpty ?? true)
+//                           ? 'Add Photo'
 //                           : 'Add More Photos',
 //                       style: TextStyle(
 //                         fontSize: 12,
@@ -1067,7 +1065,7 @@
 //                 ),
 //               ),
 //             ),
-          
+
 //           if (_isUploading[pharmacyId] ?? false)
 //             const Center(
 //               child: Padding(
@@ -1081,17 +1079,7 @@
 //   }
 // }
 
-
-
-
-
-
-
-
-
 ///////////////// New code for showing message for nearby location///////////////////////
-
-
 
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -1377,11 +1365,10 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder:
-                (context) => PharmacyPickupScreen(
-                  orderId: widget.orderId,
-                  riderId: widget.riderId,
-                ),
+            builder: (context) => PharmacyPickupScreen(
+              orderId: widget.orderId,
+              riderId: widget.riderId,
+            ),
           ),
         );
       }
@@ -1454,9 +1441,29 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
   Widget build(BuildContext context) {
     return Consumer<RiderOrderProvider>(
       builder: (context, provider, child) {
+        // if (provider.isLoading && provider.currentOrder == null) {
+        //   return const Scaffold(
+        //     body: Center(child: CircularProgressIndicator()),
+        //   );
+        // }
+
         if (provider.isLoading && provider.currentOrder == null) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+
+                  ElevatedButton.icon(
+                    onPressed: _loadOrder,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Refresh'),
+                  ),
+                ],
+              ),
+            ),
           );
         }
 
@@ -1794,41 +1801,40 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                                   Padding(
                                     padding: const EdgeInsets.all(12),
                                     child: Column(
-                                      children:
-                                          pharmacyItems.map<Widget>((item) {
-                                            final medicine = item.medicineId;
-                                            if (medicine == null) {
-                                              return const SizedBox.shrink();
-                                            }
+                                      children: pharmacyItems.map<Widget>((
+                                        item,
+                                      ) {
+                                        final medicine = item.medicineId;
+                                        if (medicine == null) {
+                                          return const SizedBox.shrink();
+                                        }
 
-                                            return Container(
-                                              margin: const EdgeInsets.only(
-                                                bottom: 8,
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  Container(
-                                                    width: 40,
-                                                    height: 40,
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            8,
-                                                          ),
-                                                      color: Colors.grey[100],
-                                                    ),
-                                                    child: medicine
-                                                            .images.isNotEmpty
-                                                        ? ClipRRect(
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  8,
-                                                                ),
-                                                            child: Image.network(
-                                                              medicine
-                                                                  .images.first,
-                                                              fit: BoxFit.cover,
-                                                              errorBuilder: (
+                                        return Container(
+                                          margin: const EdgeInsets.only(
+                                            bottom: 8,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                width: 40,
+                                                height: 40,
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  color: Colors.grey[100],
+                                                ),
+                                                child:
+                                                    medicine.images.isNotEmpty
+                                                    ? ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
+                                                        child: Image.network(
+                                                          medicine.images.first,
+                                                          fit: BoxFit.cover,
+                                                          errorBuilder:
+                                                              (
                                                                 context,
                                                                 error,
                                                                 stackTrace,
@@ -1840,56 +1846,51 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                                                                       .grey,
                                                                 );
                                                               },
-                                                            ),
-                                                          )
-                                                        : const Icon(
-                                                            Icons.medication,
-                                                            color: Colors.grey,
-                                                          ),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          medicine.name,
-                                                          style:
-                                                              const TextStyle(
-                                                                fontSize: 13,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w500,
-                                                              ),
-                                                          maxLines: 1,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
                                                         ),
-                                                        Text(
-                                                          'Qty: ${item.quantity}',
-                                                          style: TextStyle(
-                                                            fontSize: 11,
-                                                            color:
-                                                                Colors.grey[600],
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    '₹${medicine.mrp}',
-                                                    style: const TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                  ),
-                                                ],
+                                                      )
+                                                    : const Icon(
+                                                        Icons.medication,
+                                                        color: Colors.grey,
+                                                      ),
                                               ),
-                                            );
-                                          }).toList(),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      medicine.name,
+                                                      style: const TextStyle(
+                                                        fontSize: 13,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                    Text(
+                                                      'Qty: ${item.quantity}',
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                        color: Colors.grey[600],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              Text(
+                                                '₹${medicine.mrp}',
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
                                     ),
                                   ),
 
@@ -1909,13 +1910,14 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                                         width: double.infinity,
                                         height: 40,
                                         child: ElevatedButton(
-                                          onPressed: (_isUploading[currentPharmacy
-                                                          .pharmacyId] ??
-                                                      false)
+                                          onPressed:
+                                              (_isUploading[currentPharmacy
+                                                      .pharmacyId] ??
+                                                  false)
                                               ? null
                                               : () => _uploadDeliveryProof(
-                                                currentPharmacy.pharmacyId,
-                                              ),
+                                                  currentPharmacy.pharmacyId,
+                                                ),
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: Colors.blue,
                                             shape: RoundedRectangleBorder(
@@ -1923,7 +1925,8 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                                                   BorderRadius.circular(8),
                                             ),
                                           ),
-                                          child: (_isUploading[currentPharmacy
+                                          child:
+                                              (_isUploading[currentPharmacy
                                                       .pharmacyId] ??
                                                   false)
                                               ? const SizedBox(
@@ -1960,8 +1963,9 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: Colors.green.shade50,
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                           border: Border.all(
                                             color: Colors.green.shade200,
                                           ),
@@ -2000,8 +2004,8 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                                           onPressed: _isUpdatingStatus
                                               ? null
                                               : () => _handlePharmacyPickup(
-                                                currentPharmacy.pharmacyId,
-                                              ),
+                                                  currentPharmacy.pharmacyId,
+                                                ),
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: Colors.green,
                                             shape: RoundedRectangleBorder(
@@ -2074,7 +2078,8 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                             // Location Button
                             GestureDetector(
                               onTap: () {
-                                if (deliveryLat != null && deliveryLng != null) {
+                                if (deliveryLat != null &&
+                                    deliveryLng != null) {
                                   _openGoogleMaps(deliveryLat, deliveryLng);
                                 } else {
                                   _openGoogleMaps(
@@ -2302,11 +2307,7 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
                 ),
                 padding: EdgeInsets.zero,
               ),
-              icon: const Icon(
-                Icons.directions,
-                color: Colors.white,
-                size: 16,
-              ),
+              icon: const Icon(Icons.directions, color: Colors.white, size: 16),
               label: const Text(
                 'Navigate to Pharmacy',
                 style: TextStyle(
