@@ -68,43 +68,94 @@ class NewOrder {
     this.createdAt,
   });
 
+  // factory NewOrder.fromJson(Map<String, dynamic> json) {
+  //   return NewOrder(
+  //     id: json['_id'] ?? '',
+  //     orderId: json['orderId'] ?? '',
+  //     status: json['status'] ?? '',
+
+  //     assignedRider: json['assignedRider'] ?? '',
+  //     assignedRiderStatus: json['assignedRiderStatus'] ?? '',
+
+  //     totalAmount: (json['totalAmount'] ?? 0).toDouble(),
+  //     estimatedEarning: (json['estimatedEarning'] ?? 0).toDouble(),
+  //     paymentMethod: json['paymentMethod'] ?? '',
+
+  //     deliveryAddress:
+  //         DeliveryAddress.fromJson(json['deliveryAddress'] ?? {}),
+
+  //     user: User.fromJson(json['userId'] ?? {}),
+
+  //     orderItems: (json['orderItems'] as List? ?? [])
+  //         .map((e) => OrderItem.fromJson(e))
+  //         .toList(),
+
+  //     statusTimeline: (json['statusTimeline'] as List? ?? [])
+  //         .map((e) => StatusTimeline.fromJson(e))
+  //         .toList(),
+
+  //     pharmacyPickups: (json['pharmacyPickups'] as List? ?? [])
+  //         .map((e) => PharmacyPickup.fromJson(e))
+  //         .toList(),
+
+  //     notes: json['notes'] ?? '',
+  //     paymentStatus: json['paymentStatus'] ?? '',
+  //     createdAt: json['createdAt'] != null
+  //         ? DateTime.tryParse(json['createdAt'])
+  //         : null,
+  //   );
+  // }
+
+
+
   factory NewOrder.fromJson(Map<String, dynamic> json) {
-    return NewOrder(
-      id: json['_id'] ?? '',
-      orderId: json['orderId'] ?? '',
-      status: json['status'] ?? '',
-
-      assignedRider: json['assignedRider'] ?? '',
-      assignedRiderStatus: json['assignedRiderStatus'] ?? '',
-
-      totalAmount: (json['totalAmount'] ?? 0).toDouble(),
-      estimatedEarning: (json['estimatedEarning'] ?? 0).toDouble(),
-      paymentMethod: json['paymentMethod'] ?? '',
-
-      deliveryAddress:
-          DeliveryAddress.fromJson(json['deliveryAddress'] ?? {}),
-
-      user: User.fromJson(json['userId'] ?? {}),
-
-      orderItems: (json['orderItems'] as List? ?? [])
-          .map((e) => OrderItem.fromJson(e))
-          .toList(),
-
-      statusTimeline: (json['statusTimeline'] as List? ?? [])
-          .map((e) => StatusTimeline.fromJson(e))
-          .toList(),
-
-      pharmacyPickups: (json['pharmacyPickups'] as List? ?? [])
-          .map((e) => PharmacyPickup.fromJson(e))
-          .toList(),
-
-      notes: json['notes'] ?? '',
-      paymentStatus: json['paymentStatus'] ?? '',
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'])
-          : null,
+  // Derive assignedRiderStatus from statusTimeline or fallback
+  String derivedRiderStatus = json['assignedRiderStatus'] ?? '';
+  
+  if (derivedRiderStatus.isEmpty) {
+    final timeline = json['statusTimeline'] as List? ?? [];
+    final hasRiderAssigned = timeline.any(
+      (t) => (t['status'] ?? '').toString().toLowerCase().contains('rider'),
     );
+    if (hasRiderAssigned) {
+      derivedRiderStatus = 'Assigned';
+    }
   }
+
+  return NewOrder(
+    id: json['_id'] ?? '',
+    orderId: json['orderId'] ?? '',
+    status: json['status'] ?? '',
+
+    assignedRider: json['assignedRider'] ?? '',
+    assignedRiderStatus: derivedRiderStatus, // ← use derived value
+
+    totalAmount: (json['totalAmount'] ?? 0).toDouble(),
+    estimatedEarning: (json['estimatedEarning'] ?? 0).toDouble(),
+    paymentMethod: json['paymentMethod'] ?? '',
+
+    deliveryAddress: DeliveryAddress.fromJson(json['deliveryAddress'] ?? {}),
+    user: User.fromJson(json['userId'] ?? {}),
+
+    orderItems: (json['orderItems'] as List? ?? [])
+        .map((e) => OrderItem.fromJson(e))
+        .toList(),
+
+    statusTimeline: (json['statusTimeline'] as List? ?? [])
+        .map((e) => StatusTimeline.fromJson(e))
+        .toList(),
+
+    pharmacyPickups: (json['pharmacyPickups'] as List? ?? [])
+        .map((e) => PharmacyPickup.fromJson(e))
+        .toList(),
+
+    notes: json['notes'] ?? '',
+    paymentStatus: json['paymentStatus'] ?? '',
+    createdAt: json['createdAt'] != null
+        ? DateTime.tryParse(json['createdAt'])
+        : null,
+  );
+}
 }
 
 class DeliveryAddress {
