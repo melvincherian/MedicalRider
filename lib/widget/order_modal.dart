@@ -57,11 +57,19 @@ class _OrderScreenState extends State<OrderScreen> {
         // final canAcceptReject = order.assignedRiderStatus.toLowerCase() == 'assigned';
 
         // Instead of relying solely on assignedRiderStatus:
+        // final canAcceptReject =
+        //     order.assignedRiderStatus.toLowerCase() == 'assigned' ||
+        //     order.statusTimeline.any(
+        //       (t) => t.status.toLowerCase().contains('rider'),
+        //     );
+
+
+
         final canAcceptReject =
-            order.assignedRiderStatus.toLowerCase() == 'assigned' ||
-            order.statusTimeline.any(
-              (t) => t.status.toLowerCase().contains('rider'),
-            );
+    order.assignedRiderStatus.toLowerCase() == 'assigned' ||
+    order.statusTimeline.any(
+      (t) => t.message.toLowerCase().contains('rider'), // ← message, not status
+    );
 
         return Scaffold(
           backgroundColor: Colors.white,
