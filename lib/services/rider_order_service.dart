@@ -11,36 +11,63 @@ class RiderOrderService {
 
   /// ================= GET ACCEPTED ORDER =================
 
-  Future<AcceptedOrder> getAcceptedOrder(
-    String orderId,
-    String riderId,
-  ) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/rider/acceptedorders/$riderId'),
-        headers: {'Content-Type': 'application/json'},
-      );
+  // Future<AcceptedOrder> getAcceptedOrder(
+  //   String orderId,
+  //   String riderId,
+  // ) async {
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse('$baseUrl/rider/acceptedorders/$riderId'),
+  //       headers: {'Content-Type': 'application/json'},
+  //     );
 
-      print('Get Order Status: ${response.statusCode}');
-      print('Get Order Body: ${response.body}');
+  //     print('Get Order Status: ${response.statusCode}');
+  //     print('Get Order Body: ${response.body}');
 
-      if (response.statusCode == 200) {
-        final jsonResponse = json.decode(response.body);
+  //     if (response.statusCode == 200) {
+  //       final jsonResponse = json.decode(response.body);
 
-        final riderOrderResponse =
-            RiderOrderResponse.fromJson(jsonResponse);
+  //       final riderOrderResponse =
+  //           RiderOrderResponse.fromJson(jsonResponse);
 
-        return riderOrderResponse.acceptedOrder;
-      } else {
-        throw Exception(
-          'Failed to load order: ${response.statusCode}',
-        );
-      }
-    } catch (e) {
-      print('Error getting order: $e');
-      throw Exception('Failed to load order: $e');
+  //       return riderOrderResponse.acceptedOrder;
+  //     } else {
+  //       throw Exception(
+  //         'Failed to load order: ${response.statusCode}',
+  //       );
+  //     }
+  //   } catch (e) {
+  //     print('Error getting order: $e');
+  //     throw Exception('Failed to load order: $e');
+  //   }
+  // }
+
+
+ /// New code added for checking the aab apk ///
+
+
+  Future<AcceptedOrder?> getAcceptedOrder(String orderId, String riderId) async {
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/rider/acceptedorders/$riderId'),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    print('Get Order Status: ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+      final riderOrderResponse = RiderOrderResponse.fromJson(jsonResponse);
+      return riderOrderResponse.acceptedOrder; // returns null if not found
+    } else {
+      print('Non-200 status: ${response.statusCode}');
+      return null; // ← don't throw, just return null so retry works
     }
+  } catch (e) {
+    print('Error getting order: $e');
+    return null; // ← same here, let the retry logic handle it
   }
+}
 
   /// ================= UPDATE STATUS =================
 

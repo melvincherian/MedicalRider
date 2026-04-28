@@ -63,47 +63,94 @@ class RiderOrderProvider extends ChangeNotifier {
 
   /// ================= LOAD ORDER =================
 
-  Future<bool> loadOrder(String orderId, String riderId) async {
-    print('=== LOADING ORDER ===');
-    print('Order ID: $orderId');
-    print('Rider ID: $riderId');
+  // Future<bool> loadOrder(String orderId, String riderId) async {
+  //   print('=== LOADING ORDER ===');
+  //   print('Order ID: $orderId');
+  //   print('Rider ID: $riderId');
     
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+  //   _isLoading = true;
+  //   _error = null;
+  //   notifyListeners();
 
+  //   try {
+  //     _currentOrder = await _service.getAcceptedOrder(orderId, riderId);
+
+  //     if (_currentOrder != null) {
+  //       print('Order loaded successfully');
+  //       print('Order status: ${_currentOrder!.status}');
+  //       print('Assigned rider status: ${_currentOrder!.assignedRiderStatus}');
+  //       print('PharmacyResponses count: ${_currentOrder!.pharmacyResponses.length}');
+        
+  //       // Print pharmacy responses
+  //       for (var response in _currentOrder!.pharmacyResponses) {
+  //         print('Pharmacy ${response.pharmacyId}: ${response.status}');
+  //       }
+        
+  //       _error = null;
+  //     } else {
+  //       _error = 'No accepted order found';
+  //       print('No order found for rider');
+  //     }
+
+  //     _isLoading = false;
+  //     notifyListeners();
+  //     return _currentOrder != null;
+  //   } catch (e) {
+  //     _error = e.toString();
+  //     print('Error loading order: $e');
+  //     _isLoading = false;
+  //     notifyListeners();
+  //     return false;
+  //   }
+  // }
+
+///   New code added for delay in aab file//
+
+Future<bool> loadOrder(String orderId, String riderId) async {
+  print('=== LOADING ORDER ===');
+
+  _isLoading = true;
+  _error = null;
+  notifyListeners();
+
+  const int maxRetries = 5;
+  const int delayMs = 1000; 
+
+  for (int attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      _currentOrder = await _service.getAcceptedOrder(orderId, riderId);
+      print('Load attempt $attempt of $maxRetries');
 
-      if (_currentOrder != null) {
-        print('Order loaded successfully');
-        print('Order status: ${_currentOrder!.status}');
-        print('Assigned rider status: ${_currentOrder!.assignedRiderStatus}');
-        print('PharmacyResponses count: ${_currentOrder!.pharmacyResponses.length}');
-        
-        // Print pharmacy responses
-        for (var response in _currentOrder!.pharmacyResponses) {
-          print('Pharmacy ${response.pharmacyId}: ${response.status}');
-        }
-        
+      final order = await _service.getAcceptedOrder(orderId, riderId);
+
+      if (order != null) {
+        _currentOrder = order;
         _error = null;
-      } else {
-        _error = 'No accepted order found';
-        print('No order found for rider');
+        _isLoading = false;
+        notifyListeners();
+        print('Order loaded successfully on attempt $attempt');
+        return true;
       }
 
-      _isLoading = false;
-      notifyListeners();
-      return _currentOrder != null;
+      print('Attempt $attempt: order null, retrying in ${delayMs * attempt}ms...');
+      await Future.delayed(Duration(milliseconds: delayMs * attempt));
+
     } catch (e) {
-      _error = e.toString();
-      print('Error loading order: $e');
-      _isLoading = false;
-      notifyListeners();
-      return false;
+      print('Attempt $attempt failed: $e');
+      if (attempt == maxRetries) {
+        _error = 'Failed to load order after $maxRetries attempts: $e';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+      await Future.delayed(Duration(milliseconds: delayMs * attempt));
     }
   }
 
+  _error = 'Order not found after $maxRetries attempts';
+  _isLoading = false;
+  notifyListeners();
+  return false;
+}
   /// ================= NEXT PHARMACY =================
 
   /// Get the first accepted pharmacy to process
