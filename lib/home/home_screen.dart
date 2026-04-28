@@ -41,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this); 
+    WidgetsBinding.instance.addObserver(this);
     _loadRiderData();
     _fetchDashboardData();
     _fetchNewOrders();
@@ -78,7 +78,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       context,
       listen: false,
     );
-        print("sfjsfjdfjds;fj;dkfjdsk;fjds;lfjdsklfjdsfjk sdfjkhjs1111111111111111 $riderid");
+    print(
+      "sfjsfjdfjds;fj;dkfjdsk;fjds;lfjdsklfjdsfjk sdfjkhjs1111111111111111 $riderid",
+    );
 
     await newOrderProvider.fetchNewOrders(riderid);
 
@@ -346,7 +348,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   //     // ACCEPTED ORDERS
   //     final acceptedResponse = await http.get(
   //       Uri.parse(
-  //         'http://31.97.206.144:7021/api/rider/acceptedorders/$riderId',
+  //         'https://api.simcurarx.com/api/rider/acceptedorders/$riderId',
   //       ),
   //     );
 
@@ -374,7 +376,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   //     // PICKED UP ORDERS
   //     final pickedUpResponse = await http.get(
   //       Uri.parse(
-  //         'http://31.97.206.144:7021/api/rider/pickeduporders/$riderId',
+  //         'https://api.simcurarx.com/api/rider/pickeduporders/$riderId',
   //       ),
   //     );
 
@@ -419,722 +421,709 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   //   }
   // }
 
-
-// Future<void> _handleOrderButtonTap(
-//   BuildContext context,
-//   NewOrderProvider orderProvider,
-// ) async {
-//   _stopAlertSound();
-//   _hasShownModal = false;
-
-//   print('========== CHECKING ORDERS ==========');
-//   print('Pending orders count: ${orderProvider.pendingOrders.length}');
-//   print('Rider ID: $riderid');
-
-//   // FIRST: Check for pending orders from NewOrderProvider
-//   if (orderProvider.pendingOrders.isNotEmpty) {
-//     print('Found pending orders - showing OrderModal');
-//     final latestOrder = orderProvider.pendingOrders.first;
-
-//     final result = await showModalBottomSheet<bool>(
-//       context: context,
-//       isScrollControlled: true,
-//       backgroundColor: Colors.transparent,
-//       isDismissible: false,
-//       enableDrag: false,
-//       builder: (context) => OrderModal(
-//         riderId: riderid.toString(),
-//         order: latestOrder,
-//         onOrderAccepted: () {
-//           _stopAlertSound();
-//           _hasShownModal = false;
-//           _previousPendingOrdersCount--;
-//           Navigator.of(context).pop(true);
-//         },
-//         onOrderRejected: () {
-//           _stopAlertSound();
-//           _hasShownModal = false;
-//           _previousPendingOrdersCount--;
-//           Navigator.of(context).pop(false);
-//         },
-//       ),
-//     );
-
-//     if (result == true && mounted) {
-//       await Future.wait([
-//         Provider.of<DashboardProvider>(
-//           context,
-//           listen: false,
-//         ).refreshDashboard(),
-//         Provider.of<NewOrderProvider>(
-//           context,
-//           listen: false,
-//         ).refreshOrders(riderid),
-//       ]);
-
-//       // After accepting order, navigate to ConfirmOrderModal
-//       if (mounted) {
-//         showModalBottomSheet(
-//           context: context,
-//           backgroundColor: Colors.transparent,
-//           isScrollControlled: true,
-//           isDismissible: false,
-//           enableDrag: false,
-//           builder: (context) => ConfirmOrderModal(
-//             orderId: latestOrder.id,
-//             riderId: riderid,
-//           ),
-//         );
-//       }
-//     } else if (result == false && mounted) {
-//       await Future.wait([
-//         Provider.of<DashboardProvider>(
-//           context,
-//           listen: false,
-//         ).refreshDashboard(),
-//         Provider.of<NewOrderProvider>(
-//           context,
-//           listen: false,
-//         ).refreshOrders(riderid),
-//       ]);
-//     }
-
-//     return;
-//   }
-
-//   // Show loading dialog while checking backend
-//   showDialog(
-//     context: context,
-//     barrierDismissible: false,
-//     builder: (context) => const Center(
-//       child: CircularProgressIndicator(),
-//     ),
-//   );
-
-//   try {
-//     final riderId = context.read<ProfileProvider>().rider?.id ?? riderid;
-//     print('Checking backend for orders with riderId: $riderId');
-
-//     // SECOND: Check for ACCEPTED ORDERS
-//     print('Fetching accepted orders from: http://31.97.206.144:7021/api/rider/acceptedorders/$riderId');
-    
-//     final acceptedResponse = await http.get(
-//       Uri.parse(
-//         'http://31.97.206.144:7021/api/rider/acceptedorders/$riderId',
-//       ),
-//     );
-
-//     print('Accepted orders response status: ${acceptedResponse.statusCode}');
-//     print('Accepted orders response body: ${acceptedResponse.body}');
-
-//     if (acceptedResponse.statusCode == 200) {
-//       final acceptedData = json.decode(acceptedResponse.body);
-      
-//       // Check if acceptedOrder exists and is not null
-//       if (acceptedData.containsKey('acceptedOrder')) {
-//         print('acceptedOrder key exists');
-        
-//         final acceptedOrder = acceptedData['acceptedOrder'];
-        
-//         if (acceptedOrder != null) {
-//           print('acceptedOrder is not null');
-          
-//           // The acceptedOrder object itself IS the order
-//           if (acceptedOrder.containsKey('_id')) {
-//             final orderId = acceptedOrder['_id'];
-//             print('✅ Found accepted order with ID: $orderId');
-            
-//             // Dismiss loading dialog
-//             if (mounted) Navigator.pop(context);
-
-//             // Navigate to ConfirmOrderModal
-//             if (mounted) {
-//               showModalBottomSheet(
-//                 context: context,
-//                 backgroundColor: Colors.transparent,
-//                 isScrollControlled: true,
-//                 isDismissible: false,
-//                 enableDrag: false,
-//                 builder: (context) => ConfirmOrderModal(
-//                   orderId: orderId,
-//                   riderId: riderId,
-//                 ),
-//               );
-//             }
-//             return;
-//           } else {
-//             print('❌ acceptedOrder has no _id field');
-//           }
-//         } else {
-//           print('❌ acceptedOrder is null');
-//         }
-//       } else {
-//         print('❌ Response has no acceptedOrder key');
-//       }
-//     } else {
-//       print('❌ Failed to fetch accepted orders: ${acceptedResponse.statusCode}');
-//     }
-
-//     // THIRD: Check for PICKED UP ORDERS
-//     print('Fetching picked up orders from: http://31.97.206.144:7021/api/rider/pickeduporders/$riderId');
-    
-//     final pickedUpResponse = await http.get(
-//       Uri.parse(
-//         'http://31.97.206.144:7021/api/rider/pickeduporders/$riderId',
-//       ),
-//     );
-
-//     print('Picked up orders response status: ${pickedUpResponse.statusCode}');
-//     print('Picked up orders response body: ${pickedUpResponse.body}');
-
-//     if (pickedUpResponse.statusCode == 200) {
-//       final pickedUpData = json.decode(pickedUpResponse.body);
-
-//       // Check if there are picked up orders
-//       if (pickedUpData.containsKey('pickedUpOrders')) {
-//         print('pickedUpOrders key exists');
-        
-//         final pickedUpOrders = pickedUpData['pickedUpOrders'];
-        
-//         if (pickedUpOrders != null && pickedUpOrders is List && pickedUpOrders.isNotEmpty) {
-//           print('Found ${pickedUpOrders.length} picked up orders');
-          
-//           final firstOrder = pickedUpOrders[0];
-          
-//           // Check the structure of picked up orders
-//           // It might be similar to accepted orders or nested differently
-//           if (firstOrder.containsKey('_id')) {
-//             // Direct order object
-//             final orderId = firstOrder['_id'];
-//             print('✅ Found picked up order with ID: $orderId');
-
-//             // Dismiss loading dialog
-//             if (mounted) Navigator.pop(context);
-
-//             // Navigate to OrderDeliveredModal
-//             // if (mounted) {
-//             //   Navigator.push(
-//             //     context,
-//             //     MaterialPageRoute(
-//             //       builder: (context) => OrderDeliveredModal(orderId: orderId),
-//             //     ),
-//             //   );
-//             // }
-//             return;
-//           } else if (firstOrder.containsKey('order')) {
-//             // Nested order object
-//             final orderObject = firstOrder['order'];
-//             if (orderObject != null && orderObject.containsKey('_id')) {
-//               final orderId = orderObject['_id'];
-//               print('✅ Found picked up order with ID: $orderId');
-
-//               if (mounted) Navigator.pop(context);
-
-//               // if (mounted) {
-//               //   Navigator.push(
-//               //     context,
-//               //     MaterialPageRoute(
-//               //       builder: (context) => OrderDeliveredModal(orderId: orderId),
-//               //     ),
-//               //   );
-//               // }
-//               return;
-//             }
-//           }
-//         } else {
-//           print('❌ pickedUpOrders is empty or not a list');
-//         }
-//       } else {
-//         print('❌ Response has no pickedUpOrders key');
-//       }
-//     } else {
-//       print('❌ Failed to fetch picked up orders: ${pickedUpResponse.statusCode}');
-//     }
-
-//     // No orders found in any state
-//     print('❌ No orders found in any state');
-//     if (mounted) Navigator.pop(context); // Dismiss loading dialog
-
-//     if (mounted) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(
-//           content: Text('No active orders found'),
-//           backgroundColor: Colors.orange,
-//         ),
-//       );
-//     }
-//   } catch (e) {
-//     print('❌ Error checking orders: $e');
-//     print('Stack trace: ${StackTrace.current}');
-    
-//     if (mounted) Navigator.pop(context); // Dismiss loading dialog
-
-//     if (mounted) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(
-//           content: Text('Error loading orders: $e'),
-//           backgroundColor: Colors.red,
-//         ),
-//       );
-//     }
-//   }
-  
-//   print('========== ORDER CHECK COMPLETE ==========');
-// }
-
-
-// Future<void> _handleOrderButtonTap(
-//   BuildContext context,
-//   NewOrderProvider orderProvider,
-// ) async {
-//   _stopAlertSound();
-//   _hasShownModal = false;
-
-//   print('========== CHECKING ORDERS ==========');
-
-//   /// ======================
-//   /// FIRST: Pending Orders
-//   /// ======================
-//   if (orderProvider.pendingOrders.isNotEmpty) {
-//     final latestOrder = orderProvider.pendingOrders.first;
-
-//     final result = await showModalBottomSheet<bool>(
-//       context: context,
-//       isScrollControlled: true,
-//       backgroundColor: Colors.transparent,
-//       isDismissible: false,
-//       enableDrag: false,
-//       builder: (context) => OrderModal(
-//         riderId: riderid.toString(),
-//         order: latestOrder,
-//         onOrderAccepted: () {
-//           _stopAlertSound();
-//           _hasShownModal = false;
-//           _previousPendingOrdersCount--;
-//           Navigator.pop(context, true);
-//         },
-//         onOrderRejected: () {
-//           _stopAlertSound();
-//           _hasShownModal = false;
-//           _previousPendingOrdersCount--;
-//           Navigator.pop(context, false);
-//         },
-//       ),
-//     );
-
-//     if (result == true && mounted) {
-//       await Future.wait([
-//         context.read<DashboardProvider>().refreshDashboard(),
-//         context.read<NewOrderProvider>().refreshOrders(riderid),
-//       ]);
-
-//       if (mounted) {
-//         showModalBottomSheet(
-//           context: context,
-//           backgroundColor: Colors.transparent,
-//           isScrollControlled: true,
-//           isDismissible: false,
-//           enableDrag: false,
-//           builder: (_) => ConfirmOrderModal(
-//             orderId: latestOrder.id,
-//             riderId: riderid,
-//           ),
-//         );
-//       }
-//     }
-//     return;
-//   }
-
-//   /// ======================
-//   /// LOADING
-//   /// ======================
-//   showDialog(
-//     context: context,
-//     barrierDismissible: false,
-//     builder: (_) => const Center(child: CircularProgressIndicator()),
-//   );
-
-//   try {
-//     final riderId = context.read<ProfileProvider>().rider?.id ?? riderid;
-
-//     /// ======================
-//     /// SECOND: ACCEPTED API
-//     /// ======================
-//     final acceptedResponse = await http.get(
-//       Uri.parse(
-//         'http://31.97.206.144:7021/api/rider/acceptedorders/$riderId',
-//       ),
-//     );
-
-//     bool validAcceptedFound = false;
-
-//     if (acceptedResponse.statusCode == 200) {
-//       final acceptedData = json.decode(acceptedResponse.body);
-
-//       // ✅ CASE 1: API returned only message
-//       if (acceptedData.containsKey('message')) {
-//         print('⏭️ No accepted orders (message response)');
-//       }
-
-//       // ✅ CASE 2: acceptedOrder exists
-//       else if (acceptedData['acceptedOrder'] != null) {
-//         final acceptedOrder = acceptedData['acceptedOrder'];
-
-//         bool hasValidPharmacyResponses =
-//             acceptedOrder['pharmacyResponses'] is List &&
-//             acceptedOrder['pharmacyResponses'].isNotEmpty;
-
-//         if (hasValidPharmacyResponses &&
-//             acceptedOrder.containsKey('_id')) {
-
-//           validAcceptedFound = true;
-
-//           final orderId = acceptedOrder['_id'];
-//           print('✅ Valid accepted order: $orderId');
-
-//           if (mounted) Navigator.pop(context);
-
-//           if (mounted) {
-//             showModalBottomSheet(
-//               context: context,
-//               backgroundColor: Colors.transparent,
-//               isScrollControlled: true,
-//               isDismissible: false,
-//               enableDrag: false,
-//               builder: (_) => ConfirmOrderModal(
-//                 orderId: orderId,
-//                 riderId: riderId,
-//               ),
-//             );
-//           }
-//           return;
-//         }
-//       }
-//     }
-
-//     /// ======================
-//     /// THIRD: PICKED UP API
-//     /// ======================
-//     if (!validAcceptedFound) {
-//       print('➡️ Checking picked up orders...');
-
-//       final pickedUpResponse = await http.get(
-//         Uri.parse(
-//           'http://31.97.206.144:7021/api/rider/pickeduporders/$riderId',
-//         ),
-//       );
-
-//       if (pickedUpResponse.statusCode == 200) {
-//         final pickedUpData = json.decode(pickedUpResponse.body);
-
-//         if (pickedUpData['pickedUpOrders'] is List &&
-//             pickedUpData['pickedUpOrders'].isNotEmpty) {
-
-//           final firstOrder = pickedUpData['pickedUpOrders'][0];
-
-//           String? orderId =
-//               firstOrder['_id'] ?? firstOrder['order']?['_id'];
-
-//           if (orderId != null) {
-//             print('✅ Picked up order found: $orderId');
-
-//             if (mounted) Navigator.pop(context);
-
-//             Navigator.push(
-//               context,
-//               MaterialPageRoute(
-//                 builder: (_) =>
-//                     OrderDeliveredModal(orderId: orderId.toString()),
-//               ),
-//             );
-//             return;
-//           }
-//         }
-//       }
-//     }
-
-//     /// ======================
-//     /// NO ORDERS
-//     /// ======================
-//     if (mounted) Navigator.pop(context);
-
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       const SnackBar(
-//         content: Text('No active orders found'),
-//         backgroundColor: Colors.orange,
-//       ),
-//     );
-
-//   } catch (e) {
-//     if (mounted) Navigator.pop(context);
-
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       const SnackBar(
-//         content: Text('Error loading orders'),
-//         backgroundColor: Colors.red,
-//       ),
-//     );
-//   }
-
-//   print('========== ORDER CHECK COMPLETE ==========');
-// }
-
-
-
-
-
-Future<void> _handleOrderButtonTap(
-  BuildContext context,
-  NewOrderProvider orderProvider,
-) async {
-  _stopAlertSound();
-  _hasShownModal = false;
-
-  print('========== CHECKING ORDERS ==========');
-
-  /// ======================
-  /// FIRST: Pending Orders (New Orders)
-  /// ======================
-  if (orderProvider.pendingOrders.isNotEmpty) {
-    final latestOrder = orderProvider.pendingOrders.first;
-
-    final result = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      isDismissible: false,
-      enableDrag: false,
-      builder: (context) => OrderScreen(
-        riderId: riderid.toString(),
-        order: latestOrder,
-        onOrderAccepted: () {
-          _stopAlertSound();
-          _hasShownModal = false;
-          _previousPendingOrdersCount--;
-          Navigator.pop(context, true);
-        },
-        onOrderRejected: () {
-          _stopAlertSound();
-          _hasShownModal = false;
-          _previousPendingOrdersCount--;
-          Navigator.pop(context, false);
-        },
-      ),
-    );
-
-    if (result == true && mounted) {
-      await Future.wait([
-        context.read<DashboardProvider>().refreshDashboard(),
-        context.read<NewOrderProvider>().refreshOrders(riderid),
-      ]);
-
-      if (mounted) {
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: Colors.transparent,
-          isScrollControlled: true,
-          isDismissible: false,
-          enableDrag: false,
-          builder: (_) => ConfirmOrderModal(
-            orderId: latestOrder.id,
-            riderId: riderid,
-          ),
-        );
-      }
-    }
-    return;
-  }
-
-  /// ======================
-  /// LOADING
-  /// ======================
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (_) => const Center(child: CircularProgressIndicator()),
-  );
-
-  try {
-    final riderId = context.read<ProfileProvider>().rider?.id ?? riderid;
+  // Future<void> _handleOrderButtonTap(
+  //   BuildContext context,
+  //   NewOrderProvider orderProvider,
+  // ) async {
+  //   _stopAlertSound();
+  //   _hasShownModal = false;
+
+  //   print('========== CHECKING ORDERS ==========');
+  //   print('Pending orders count: ${orderProvider.pendingOrders.length}');
+  //   print('Rider ID: $riderid');
+
+  //   // FIRST: Check for pending orders from NewOrderProvider
+  //   if (orderProvider.pendingOrders.isNotEmpty) {
+  //     print('Found pending orders - showing OrderModal');
+  //     final latestOrder = orderProvider.pendingOrders.first;
+
+  //     final result = await showModalBottomSheet<bool>(
+  //       context: context,
+  //       isScrollControlled: true,
+  //       backgroundColor: Colors.transparent,
+  //       isDismissible: false,
+  //       enableDrag: false,
+  //       builder: (context) => OrderModal(
+  //         riderId: riderid.toString(),
+  //         order: latestOrder,
+  //         onOrderAccepted: () {
+  //           _stopAlertSound();
+  //           _hasShownModal = false;
+  //           _previousPendingOrdersCount--;
+  //           Navigator.of(context).pop(true);
+  //         },
+  //         onOrderRejected: () {
+  //           _stopAlertSound();
+  //           _hasShownModal = false;
+  //           _previousPendingOrdersCount--;
+  //           Navigator.of(context).pop(false);
+  //         },
+  //       ),
+  //     );
+
+  //     if (result == true && mounted) {
+  //       await Future.wait([
+  //         Provider.of<DashboardProvider>(
+  //           context,
+  //           listen: false,
+  //         ).refreshDashboard(),
+  //         Provider.of<NewOrderProvider>(
+  //           context,
+  //           listen: false,
+  //         ).refreshOrders(riderid),
+  //       ]);
+
+  //       // After accepting order, navigate to ConfirmOrderModal
+  //       if (mounted) {
+  //         showModalBottomSheet(
+  //           context: context,
+  //           backgroundColor: Colors.transparent,
+  //           isScrollControlled: true,
+  //           isDismissible: false,
+  //           enableDrag: false,
+  //           builder: (context) => ConfirmOrderModal(
+  //             orderId: latestOrder.id,
+  //             riderId: riderid,
+  //           ),
+  //         );
+  //       }
+  //     } else if (result == false && mounted) {
+  //       await Future.wait([
+  //         Provider.of<DashboardProvider>(
+  //           context,
+  //           listen: false,
+  //         ).refreshDashboard(),
+  //         Provider.of<NewOrderProvider>(
+  //           context,
+  //           listen: false,
+  //         ).refreshOrders(riderid),
+  //       ]);
+  //     }
+
+  //     return;
+  //   }
+
+  //   // Show loading dialog while checking backend
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (context) => const Center(
+  //       child: CircularProgressIndicator(),
+  //     ),
+  //   );
+
+  //   try {
+  //     final riderId = context.read<ProfileProvider>().rider?.id ?? riderid;
+  //     print('Checking backend for orders with riderId: $riderId');
+
+  //     // SECOND: Check for ACCEPTED ORDERS
+  //     print('Fetching accepted orders from: https://api.simcurarx.com/api/rider/acceptedorders/$riderId');
+
+  //     final acceptedResponse = await http.get(
+  //       Uri.parse(
+  //         'https://api.simcurarx.com/api/rider/acceptedorders/$riderId',
+  //       ),
+  //     );
+
+  //     print('Accepted orders response status: ${acceptedResponse.statusCode}');
+  //     print('Accepted orders response body: ${acceptedResponse.body}');
+
+  //     if (acceptedResponse.statusCode == 200) {
+  //       final acceptedData = json.decode(acceptedResponse.body);
+
+  //       // Check if acceptedOrder exists and is not null
+  //       if (acceptedData.containsKey('acceptedOrder')) {
+  //         print('acceptedOrder key exists');
+
+  //         final acceptedOrder = acceptedData['acceptedOrder'];
+
+  //         if (acceptedOrder != null) {
+  //           print('acceptedOrder is not null');
+
+  //           // The acceptedOrder object itself IS the order
+  //           if (acceptedOrder.containsKey('_id')) {
+  //             final orderId = acceptedOrder['_id'];
+  //             print('✅ Found accepted order with ID: $orderId');
+
+  //             // Dismiss loading dialog
+  //             if (mounted) Navigator.pop(context);
+
+  //             // Navigate to ConfirmOrderModal
+  //             if (mounted) {
+  //               showModalBottomSheet(
+  //                 context: context,
+  //                 backgroundColor: Colors.transparent,
+  //                 isScrollControlled: true,
+  //                 isDismissible: false,
+  //                 enableDrag: false,
+  //                 builder: (context) => ConfirmOrderModal(
+  //                   orderId: orderId,
+  //                   riderId: riderId,
+  //                 ),
+  //               );
+  //             }
+  //             return;
+  //           } else {
+  //             print('❌ acceptedOrder has no _id field');
+  //           }
+  //         } else {
+  //           print('❌ acceptedOrder is null');
+  //         }
+  //       } else {
+  //         print('❌ Response has no acceptedOrder key');
+  //       }
+  //     } else {
+  //       print('❌ Failed to fetch accepted orders: ${acceptedResponse.statusCode}');
+  //     }
+
+  //     // THIRD: Check for PICKED UP ORDERS
+  //     print('Fetching picked up orders from: https://api.simcurarx.com/api/rider/pickeduporders/$riderId');
+
+  //     final pickedUpResponse = await http.get(
+  //       Uri.parse(
+  //         'https://api.simcurarx.com/api/rider/pickeduporders/$riderId',
+  //       ),
+  //     );
+
+  //     print('Picked up orders response status: ${pickedUpResponse.statusCode}');
+  //     print('Picked up orders response body: ${pickedUpResponse.body}');
+
+  //     if (pickedUpResponse.statusCode == 200) {
+  //       final pickedUpData = json.decode(pickedUpResponse.body);
+
+  //       // Check if there are picked up orders
+  //       if (pickedUpData.containsKey('pickedUpOrders')) {
+  //         print('pickedUpOrders key exists');
+
+  //         final pickedUpOrders = pickedUpData['pickedUpOrders'];
+
+  //         if (pickedUpOrders != null && pickedUpOrders is List && pickedUpOrders.isNotEmpty) {
+  //           print('Found ${pickedUpOrders.length} picked up orders');
+
+  //           final firstOrder = pickedUpOrders[0];
+
+  //           // Check the structure of picked up orders
+  //           // It might be similar to accepted orders or nested differently
+  //           if (firstOrder.containsKey('_id')) {
+  //             // Direct order object
+  //             final orderId = firstOrder['_id'];
+  //             print('✅ Found picked up order with ID: $orderId');
+
+  //             // Dismiss loading dialog
+  //             if (mounted) Navigator.pop(context);
+
+  //             // Navigate to OrderDeliveredModal
+  //             // if (mounted) {
+  //             //   Navigator.push(
+  //             //     context,
+  //             //     MaterialPageRoute(
+  //             //       builder: (context) => OrderDeliveredModal(orderId: orderId),
+  //             //     ),
+  //             //   );
+  //             // }
+  //             return;
+  //           } else if (firstOrder.containsKey('order')) {
+  //             // Nested order object
+  //             final orderObject = firstOrder['order'];
+  //             if (orderObject != null && orderObject.containsKey('_id')) {
+  //               final orderId = orderObject['_id'];
+  //               print('✅ Found picked up order with ID: $orderId');
+
+  //               if (mounted) Navigator.pop(context);
+
+  //               // if (mounted) {
+  //               //   Navigator.push(
+  //               //     context,
+  //               //     MaterialPageRoute(
+  //               //       builder: (context) => OrderDeliveredModal(orderId: orderId),
+  //               //     ),
+  //               //   );
+  //               // }
+  //               return;
+  //             }
+  //           }
+  //         } else {
+  //           print('❌ pickedUpOrders is empty or not a list');
+  //         }
+  //       } else {
+  //         print('❌ Response has no pickedUpOrders key');
+  //       }
+  //     } else {
+  //       print('❌ Failed to fetch picked up orders: ${pickedUpResponse.statusCode}');
+  //     }
+
+  //     // No orders found in any state
+  //     print('❌ No orders found in any state');
+  //     if (mounted) Navigator.pop(context); // Dismiss loading dialog
+
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //           content: Text('No active orders found'),
+  //           backgroundColor: Colors.orange,
+  //         ),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     print('❌ Error checking orders: $e');
+  //     print('Stack trace: ${StackTrace.current}');
+
+  //     if (mounted) Navigator.pop(context); // Dismiss loading dialog
+
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text('Error loading orders: $e'),
+  //           backgroundColor: Colors.red,
+  //         ),
+  //       );
+  //     }
+  //   }
+
+  //   print('========== ORDER CHECK COMPLETE ==========');
+  // }
+
+  // Future<void> _handleOrderButtonTap(
+  //   BuildContext context,
+  //   NewOrderProvider orderProvider,
+  // ) async {
+  //   _stopAlertSound();
+  //   _hasShownModal = false;
+
+  //   print('========== CHECKING ORDERS ==========');
+
+  //   /// ======================
+  //   /// FIRST: Pending Orders
+  //   /// ======================
+  //   if (orderProvider.pendingOrders.isNotEmpty) {
+  //     final latestOrder = orderProvider.pendingOrders.first;
+
+  //     final result = await showModalBottomSheet<bool>(
+  //       context: context,
+  //       isScrollControlled: true,
+  //       backgroundColor: Colors.transparent,
+  //       isDismissible: false,
+  //       enableDrag: false,
+  //       builder: (context) => OrderModal(
+  //         riderId: riderid.toString(),
+  //         order: latestOrder,
+  //         onOrderAccepted: () {
+  //           _stopAlertSound();
+  //           _hasShownModal = false;
+  //           _previousPendingOrdersCount--;
+  //           Navigator.pop(context, true);
+  //         },
+  //         onOrderRejected: () {
+  //           _stopAlertSound();
+  //           _hasShownModal = false;
+  //           _previousPendingOrdersCount--;
+  //           Navigator.pop(context, false);
+  //         },
+  //       ),
+  //     );
+
+  //     if (result == true && mounted) {
+  //       await Future.wait([
+  //         context.read<DashboardProvider>().refreshDashboard(),
+  //         context.read<NewOrderProvider>().refreshOrders(riderid),
+  //       ]);
+
+  //       if (mounted) {
+  //         showModalBottomSheet(
+  //           context: context,
+  //           backgroundColor: Colors.transparent,
+  //           isScrollControlled: true,
+  //           isDismissible: false,
+  //           enableDrag: false,
+  //           builder: (_) => ConfirmOrderModal(
+  //             orderId: latestOrder.id,
+  //             riderId: riderid,
+  //           ),
+  //         );
+  //       }
+  //     }
+  //     return;
+  //   }
+
+  //   /// ======================
+  //   /// LOADING
+  //   /// ======================
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (_) => const Center(child: CircularProgressIndicator()),
+  //   );
+
+  //   try {
+  //     final riderId = context.read<ProfileProvider>().rider?.id ?? riderid;
+
+  //     /// ======================
+  //     /// SECOND: ACCEPTED API
+  //     /// ======================
+  //     final acceptedResponse = await http.get(
+  //       Uri.parse(
+  //         'https://api.simcurarx.com/api/rider/acceptedorders/$riderId',
+  //       ),
+  //     );
+
+  //     bool validAcceptedFound = false;
+
+  //     if (acceptedResponse.statusCode == 200) {
+  //       final acceptedData = json.decode(acceptedResponse.body);
+
+  //       // ✅ CASE 1: API returned only message
+  //       if (acceptedData.containsKey('message')) {
+  //         print('⏭️ No accepted orders (message response)');
+  //       }
+
+  //       // ✅ CASE 2: acceptedOrder exists
+  //       else if (acceptedData['acceptedOrder'] != null) {
+  //         final acceptedOrder = acceptedData['acceptedOrder'];
+
+  //         bool hasValidPharmacyResponses =
+  //             acceptedOrder['pharmacyResponses'] is List &&
+  //             acceptedOrder['pharmacyResponses'].isNotEmpty;
+
+  //         if (hasValidPharmacyResponses &&
+  //             acceptedOrder.containsKey('_id')) {
+
+  //           validAcceptedFound = true;
+
+  //           final orderId = acceptedOrder['_id'];
+  //           print('✅ Valid accepted order: $orderId');
+
+  //           if (mounted) Navigator.pop(context);
+
+  //           if (mounted) {
+  //             showModalBottomSheet(
+  //               context: context,
+  //               backgroundColor: Colors.transparent,
+  //               isScrollControlled: true,
+  //               isDismissible: false,
+  //               enableDrag: false,
+  //               builder: (_) => ConfirmOrderModal(
+  //                 orderId: orderId,
+  //                 riderId: riderId,
+  //               ),
+  //             );
+  //           }
+  //           return;
+  //         }
+  //       }
+  //     }
+
+  //     /// ======================
+  //     /// THIRD: PICKED UP API
+  //     /// ======================
+  //     if (!validAcceptedFound) {
+  //       print('➡️ Checking picked up orders...');
+
+  //       final pickedUpResponse = await http.get(
+  //         Uri.parse(
+  //           'https://api.simcurarx.com/api/rider/pickeduporders/$riderId',
+  //         ),
+  //       );
+
+  //       if (pickedUpResponse.statusCode == 200) {
+  //         final pickedUpData = json.decode(pickedUpResponse.body);
+
+  //         if (pickedUpData['pickedUpOrders'] is List &&
+  //             pickedUpData['pickedUpOrders'].isNotEmpty) {
+
+  //           final firstOrder = pickedUpData['pickedUpOrders'][0];
+
+  //           String? orderId =
+  //               firstOrder['_id'] ?? firstOrder['order']?['_id'];
+
+  //           if (orderId != null) {
+  //             print('✅ Picked up order found: $orderId');
+
+  //             if (mounted) Navigator.pop(context);
+
+  //             Navigator.push(
+  //               context,
+  //               MaterialPageRoute(
+  //                 builder: (_) =>
+  //                     OrderDeliveredModal(orderId: orderId.toString()),
+  //               ),
+  //             );
+  //             return;
+  //           }
+  //         }
+  //       }
+  //     }
+
+  //     /// ======================
+  //     /// NO ORDERS
+  //     /// ======================
+  //     if (mounted) Navigator.pop(context);
+
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text('No active orders found'),
+  //         backgroundColor: Colors.orange,
+  //       ),
+  //     );
+
+  //   } catch (e) {
+  //     if (mounted) Navigator.pop(context);
+
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text('Error loading orders'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   }
+
+  //   print('========== ORDER CHECK COMPLETE ==========');
+  // }
+
+  Future<void> _handleOrderButtonTap(
+    BuildContext context,
+    NewOrderProvider orderProvider,
+  ) async {
+    _stopAlertSound();
+    _hasShownModal = false;
+
+    print('========== CHECKING ORDERS ==========');
 
     /// ======================
-    /// SECOND: ACCEPTED ORDERS API
+    /// FIRST: Pending Orders (New Orders)
     /// ======================
-    final acceptedResponse = await http.get(
-      Uri.parse(
-        'http://31.97.206.144:7021/api/rider/acceptedorders/$riderId',
-      ),
-    );
+    if (orderProvider.pendingOrders.isNotEmpty) {
+      final latestOrder = orderProvider.pendingOrders.first;
 
-    bool orderFound = false;
-
-    if (acceptedResponse.statusCode == 200) {
-      final acceptedData = json.decode(acceptedResponse.body);
-
-      // Check if acceptedOrder exists
-      if (acceptedData['acceptedOrder'] != null && acceptedData['acceptedOrder'] is Map) {
-        final acceptedOrder = acceptedData['acceptedOrder'];
-        
-        // Check if it has valid pharmacy responses
-        bool hasValidPharmacyResponses =
-            acceptedOrder['pharmacyResponses'] is List &&
-            (acceptedOrder['pharmacyResponses'] as List).isNotEmpty;
-
-        if (hasValidPharmacyResponses && acceptedOrder.containsKey('_id')) {
-          orderFound = true;
-          final orderId = acceptedOrder['_id'];
-          print('✅ Valid accepted order found: $orderId');
-
-          if (mounted) Navigator.pop(context);
-
-          if (mounted) {
-            showModalBottomSheet(
-              context: context,
-              backgroundColor: Colors.transparent,
-              isScrollControlled: true,
-              isDismissible: false,
-              enableDrag: false,
-              builder: (_) => ConfirmOrderModal(
-                orderId: orderId,
-                riderId: riderId,
-              ),
-            );
-          }
-          return;
-        }
-      }
-    }
-
-    /// ======================
-    /// THIRD: PENDING ACCEPTED ORDERS API (Pharmacy Accepted)
-    /// ======================
-    if (!orderFound) {
-      print('➡️ Checking pending accepted orders (pharmacy accepted)...');
-      
-      final pendingAcceptedResponse = await http.get(
-        Uri.parse(
-          'http://31.97.206.144:7021/api/rider/pendingacceptedorders/$riderId',
+      final result = await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        isDismissible: false,
+        enableDrag: false,
+        builder: (context) => OrderScreen(
+          riderId: riderid.toString(),
+          order: latestOrder,
+          onOrderAccepted: () {
+            _stopAlertSound();
+            _hasShownModal = false;
+            _previousPendingOrdersCount--;
+            Navigator.pop(context, true);
+          },
+          onOrderRejected: () {
+            _stopAlertSound();
+            _hasShownModal = false;
+            _previousPendingOrdersCount--;
+            Navigator.pop(context, false);
+          },
         ),
       );
 
-      if (pendingAcceptedResponse.statusCode == 200) {
-        final pendingAcceptedData = json.decode(pendingAcceptedResponse.body);
-        
-        // Check if there are newOrders with pharmacy accepted status
-        if (pendingAcceptedData['success'] == true && 
-            pendingAcceptedData['newOrders'] is List &&
-            (pendingAcceptedData['newOrders'] as List).isNotEmpty) {
-          
-          final newOrders = pendingAcceptedData['newOrders'] as List;
-          print('Found ${newOrders.length} pending accepted orders');
-          
-          // Take the first order
-          final firstOrder = newOrders.first;
-          
-          if (firstOrder.containsKey('_id')) {
+      if (result == true && mounted) {
+        await Future.wait([
+          context.read<DashboardProvider>().refreshDashboard(),
+          context.read<NewOrderProvider>().refreshOrders(riderid),
+        ]);
+
+        if (mounted) {
+          showModalBottomSheet(
+            context: context,
+            backgroundColor: Colors.transparent,
+            isScrollControlled: true,
+            isDismissible: false,
+            enableDrag: false,
+            builder: (_) =>
+                ConfirmOrderModal(orderId: latestOrder.id, riderId: riderid),
+          );
+        }
+      }
+      return;
+    }
+
+    /// ======================
+    /// LOADING
+    /// ======================
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final riderId = context.read<ProfileProvider>().rider?.id ?? riderid;
+
+      /// ======================
+      /// SECOND: ACCEPTED ORDERS API
+      /// ======================
+      final acceptedResponse = await http.get(
+        Uri.parse(
+          'https://api.simcurarx.com/api/rider/acceptedorders/$riderId',
+        ),
+      );
+
+      bool orderFound = false;
+
+      if (acceptedResponse.statusCode == 200) {
+        final acceptedData = json.decode(acceptedResponse.body);
+
+        // Check if acceptedOrder exists
+        if (acceptedData['acceptedOrder'] != null &&
+            acceptedData['acceptedOrder'] is Map) {
+          final acceptedOrder = acceptedData['acceptedOrder'];
+
+          // Check if it has valid pharmacy responses
+          bool hasValidPharmacyResponses =
+              acceptedOrder['pharmacyResponses'] is List &&
+              (acceptedOrder['pharmacyResponses'] as List).isNotEmpty;
+
+          if (hasValidPharmacyResponses && acceptedOrder.containsKey('_id')) {
             orderFound = true;
-            final orderId = firstOrder['_id'];
-            print('✅ Pending accepted order found: $orderId');
-            
+            final orderId = acceptedOrder['_id'];
+            print('✅ Valid accepted order found: $orderId');
+
             if (mounted) Navigator.pop(context);
-            
+
             if (mounted) {
-              // Navigate to PharmacyPickupScreen instead of ConfirmOrderModal
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => PharmacyPickupScreen(
-                    orderId: orderId,
-                    riderId: riderId,
-                  ),
-                ),
+              showModalBottomSheet(
+                context: context,
+                backgroundColor: Colors.transparent,
+                isScrollControlled: true,
+                isDismissible: false,
+                enableDrag: false,
+                builder: (_) =>
+                    ConfirmOrderModal(orderId: orderId, riderId: riderId),
               );
             }
             return;
           }
-        } else {
-          print('❌ No pending accepted orders found');
         }
-      } else {
-        print('❌ Failed to fetch pending accepted orders: ${pendingAcceptedResponse.statusCode}');
       }
-    }
 
-    /// ======================
-    /// FOURTH: PICKED UP ORDERS API
-    /// ======================
-    if (!orderFound) {
-      print('➡️ Checking picked up orders...');
+      /// ======================
+      /// THIRD: PENDING ACCEPTED ORDERS API (Pharmacy Accepted)
+      /// ======================
+      if (!orderFound) {
+        print('➡️ Checking pending accepted orders (pharmacy accepted)...');
 
-      final pickedUpResponse = await http.get(
-        Uri.parse(
-          'http://31.97.206.144:7021/api/rider/pickeduporders/$riderId',
-        ),
-      );
+        final pendingAcceptedResponse = await http.get(
+          Uri.parse(
+            'https://api.simcurarx.com/api/rider/pendingacceptedorders/$riderId',
+          ),
+        );
 
-      if (pickedUpResponse.statusCode == 200) {
-        final pickedUpData = json.decode(pickedUpResponse.body);
+        if (pendingAcceptedResponse.statusCode == 200) {
+          final pendingAcceptedData = json.decode(pendingAcceptedResponse.body);
 
-        if (pickedUpData['pickedUpOrders'] is List &&
-            (pickedUpData['pickedUpOrders'] as List).isNotEmpty) {
+          // Check if there are newOrders with pharmacy accepted status
+          if (pendingAcceptedData['success'] == true &&
+              pendingAcceptedData['newOrders'] is List &&
+              (pendingAcceptedData['newOrders'] as List).isNotEmpty) {
+            final newOrders = pendingAcceptedData['newOrders'] as List;
+            print('Found ${newOrders.length} pending accepted orders');
 
-          final firstOrder = pickedUpData['pickedUpOrders'][0];
+            // Take the first order
+            final firstOrder = newOrders.first;
 
-          String? orderId =
-              firstOrder['_id'] ?? firstOrder['order']?['_id'];
+            if (firstOrder.containsKey('_id')) {
+              orderFound = true;
+              final orderId = firstOrder['_id'];
+              print('✅ Pending accepted order found: $orderId');
 
-          if (orderId != null) {
-            orderFound = true;
-            print('✅ Picked up order found: $orderId');
+              if (mounted) Navigator.pop(context);
 
-            if (mounted) Navigator.pop(context);
+              if (mounted) {
+                // Navigate to PharmacyPickupScreen instead of ConfirmOrderModal
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PharmacyPickupScreen(
+                      orderId: orderId,
+                      riderId: riderId,
+                    ),
+                  ),
+                );
+              }
+              return;
+            }
+          } else {
+            print('❌ No pending accepted orders found');
+          }
+        } else {
+          print(
+            '❌ Failed to fetch pending accepted orders: ${pendingAcceptedResponse.statusCode}',
+          );
+        }
+      }
 
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    OrderDeliveredModal(orderId: orderId.toString()),
-              ),
-            );
-            return;
+      /// ======================
+      /// FOURTH: PICKED UP ORDERS API
+      /// ======================
+      if (!orderFound) {
+        print('➡️ Checking picked up orders...');
+
+        final pickedUpResponse = await http.get(
+          Uri.parse(
+            'https://api.simcurarx.com/api/rider/pickeduporders/$riderId',
+          ),
+        );
+
+        if (pickedUpResponse.statusCode == 200) {
+          final pickedUpData = json.decode(pickedUpResponse.body);
+
+          if (pickedUpData['pickedUpOrders'] is List &&
+              (pickedUpData['pickedUpOrders'] as List).isNotEmpty) {
+            final firstOrder = pickedUpData['pickedUpOrders'][0];
+
+            String? orderId = firstOrder['_id'] ?? firstOrder['order']?['_id'];
+
+            if (orderId != null) {
+              orderFound = true;
+              print('✅ Picked up order found: $orderId');
+
+              if (mounted) Navigator.pop(context);
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      OrderDeliveredModal(orderId: orderId.toString()),
+                ),
+              );
+              return;
+            }
           }
         }
       }
-    }
 
-    /// ======================
-    /// NO ORDERS FOUND
-    /// ======================
-    if (!orderFound) {
-      print('❌ No orders found in any state');
+      /// ======================
+      /// NO ORDERS FOUND
+      /// ======================
+      if (!orderFound) {
+        print('❌ No orders found in any state');
+        if (mounted) Navigator.pop(context);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No active orders found'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ Error in order check: $e');
+      print('Stack trace: ${StackTrace.current}');
+
       if (mounted) Navigator.pop(context);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No active orders found'),
-          backgroundColor: Colors.orange,
+        SnackBar(
+          content: Text('Error loading orders: $e'),
+          backgroundColor: Colors.red,
         ),
       );
     }
 
-  } catch (e) {
-    print('❌ Error in order check: $e');
-    print('Stack trace: ${StackTrace.current}');
-    
-    if (mounted) Navigator.pop(context);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Error loading orders: $e'),
-        backgroundColor: Colors.red,
-      ),
-    );
+    print('========== ORDER CHECK COMPLETE ==========');
   }
-
-  print('========== ORDER CHECK COMPLETE ==========');
-}
-
-
 
   void _showError(String message) {
     if (!mounted) return;
@@ -1175,7 +1164,7 @@ Future<void> _handleOrderButtonTap(
   }
 
   Future<void> _fetchNewOrders() async {
-        final rider = await SharedPreferenceService.getRiderData();
+    final rider = await SharedPreferenceService.getRiderData();
     if (rider != null) {
       setState(() {
         riderName = rider.name;
@@ -1188,7 +1177,9 @@ Future<void> _handleOrderButtonTap(
       context,
       listen: false,
     );
-    print("sfjsfjdfjds;fj;dkfjdsk;fjds;lfjdsklfjdsfjk sdfjkhjs2222222222222 $riderid");
+    print(
+      "sfjsfjdfjds;fj;dkfjdsk;fjds;lfjdsklfjdsfjk sdfjkhjs2222222222222 $riderid",
+    );
     await newOrderProvider.fetchNewOrders(riderid);
   }
 
@@ -1492,271 +1483,285 @@ Future<void> _handleOrderButtonTap(
         ],
       ),
       body: Consumer3<DashboardProvider, NewOrderProvider, ProfileProvider>(
-        builder: (context, dashboardProvider, orderProvider, profileProvider, child) {
-          if (_isInitialized) {
-            final currentCount = orderProvider.pendingOrders.length;
-            if (currentCount != _previousPendingOrdersCount ||
-                (currentCount > 0 && !_hasShownModal)) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                _checkAndShowPendingOrderModal();
-              });
-            }
-          }
+        builder:
+            (
+              context,
+              dashboardProvider,
+              orderProvider,
+              profileProvider,
+              child,
+            ) {
+              if (_isInitialized) {
+                final currentCount = orderProvider.pendingOrders.length;
+                if (currentCount != _previousPendingOrdersCount ||
+                    (currentCount > 0 && !_hasShownModal)) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _checkAndShowPendingOrderModal();
+                  });
+                }
+              }
 
-          if (dashboardProvider.isLoading && !dashboardProvider.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
+              if (dashboardProvider.isLoading && !dashboardProvider.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          return RefreshIndicator(
-            onRefresh: () async {
-              await Future.wait([
-                dashboardProvider.refreshDashboard(),
-                orderProvider.refreshOrders(riderid),
-                profileProvider.initializeProfile(),
-              ]);
-              // After refresh, check for new orders
-              _checkAndShowPendingOrderModal();
-            },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  if (dashboardProvider.errorMessage != null)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red[200]!),
-                      ),
-                      child: Text(
-                        dashboardProvider.errorMessage!,
-                        style: TextStyle(color: Colors.red[700]),
-                      ),
-                    ),
-
-                  Row(
+              return RefreshIndicator(
+                onRefresh: () async {
+                  await Future.wait([
+                    dashboardProvider.refreshDashboard(),
+                    orderProvider.refreshOrders(riderid),
+                    profileProvider.initializeProfile(),
+                  ]);
+                  // After refresh, check for new orders
+                  _checkAndShowPendingOrderModal();
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: _buildStatCardWithNavigation(
-                          title: 'Today Orders',
-                          value: dashboardProvider.todayOrders.toString(),
-                          color: Colors.white,
-                          textColor: Colors.black,
-                          navigationFilter: OrderStatusType.all,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildStatCardWithNavigation(
-                          title: 'Pending',
-                          value: orderProvider.pendingOrders.length.toString(),
-                          color: Colors.orange[50]!,
-                          textColor: Colors.orange,
-                          navigationFilter: OrderStatusType.pending,
-                          specificOrderId:
-                              orderProvider.pendingOrders.isNotEmpty
-                              ? orderProvider.pendingOrders.first.id
-                              : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildStatCardWithNavigation(
-                          title: 'Cancelled',
-                          value: dashboardProvider.cancelledOrders.toString(),
-                          color: Colors.red[50]!,
-                          textColor: Colors.red,
-                          navigationFilter: OrderStatusType.cancelled,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildStatCardWithNavigation(
-                          title: 'Completed',
-                          value: dashboardProvider.completedOrders.toString(),
-                          color: Colors.green[50]!,
-                          textColor: Colors.green,
-                          navigationFilter: OrderStatusType.completed,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border.all(),
-                      color: const Color(0xFFF6FAFD),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 3,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Check Orders',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                profileProvider.rider?.name ?? riderName,
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              const Text(
-                                'Tap to view active, accepted or delivered orders',
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
+                      if (dashboardProvider.errorMessage != null)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.red[50],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red[200]!),
+                          ),
+                          child: Text(
+                            dashboardProvider.errorMessage!,
+                            style: TextStyle(color: Colors.red[700]),
                           ),
                         ),
-                        GestureDetector(
-                          onTap: () =>
-                              _handleOrderButtonTap(context, orderProvider),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF5A35EB),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.double_arrow_rounded,
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildStatCardWithNavigation(
+                              title: 'Today Orders',
+                              value: dashboardProvider.todayOrders.toString(),
                               color: Colors.white,
-                              size: 22,
+                              textColor: Colors.black,
+                              navigationFilter: OrderStatusType.all,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  Container(
-                    width: double.infinity,
-                    height: 400,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 3,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Your Earnings',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildStatCardWithNavigation(
+                              title: 'Pending',
+                              value: orderProvider.pendingOrders.length
+                                  .toString(),
+                              color: Colors.orange[50]!,
+                              textColor: Colors.orange,
+                              navigationFilter: OrderStatusType.pending,
+                              specificOrderId:
+                                  orderProvider.pendingOrders.isNotEmpty
+                                  ? orderProvider.pendingOrders.first.id
+                                  : null,
                             ),
-                            Builder(
-                              builder: (BuildContext context) {
-                                return GestureDetector(
-                                  onTap: () {
-                                    _showFilterDropdown(
-                                      context,
-                                      dashboardProvider,
-                                    );
-                                  },
-                                  child: Container(
-                                    width: 94,
-                                    height: 30,
-                                    decoration: BoxDecoration(
-                                      border: Border.all(),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.all(5.0),
-                                          child: Text(
-                                            dashboardProvider
-                                                    .filterUsed
-                                                    .isNotEmpty
-                                                ? _formatFilterText(
-                                                    dashboardProvider
-                                                        .filterUsed,
-                                                  )
-                                                : 'This Week',
-                                            style: const TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ),
-                                        const Icon(
-                                          Icons.keyboard_arrow_down,
-                                          color: Colors.black,
-                                          size: 16,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildStatCardWithNavigation(
+                              title: 'Cancelled',
+                              value: dashboardProvider.cancelledOrders
+                                  .toString(),
+                              color: Colors.red[50]!,
+                              textColor: Colors.red,
+                              navigationFilter: OrderStatusType.cancelled,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildStatCardWithNavigation(
+                              title: 'Completed',
+                              value: dashboardProvider.completedOrders
+                                  .toString(),
+                              color: Colors.green[50]!,
+                              textColor: Colors.green,
+                              navigationFilter: OrderStatusType.completed,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(),
+                          color: const Color(0xFFF6FAFD),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              spreadRadius: 1,
+                              blurRadius: 3,
+                              offset: const Offset(0, 1),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
-                        const Expanded(child: CustomLineChart()),
-                      ],
-                    ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Check Orders',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    profileProvider.rider?.name ?? riderName,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  const Text(
+                                    'Tap to view active, accepted or delivered orders',
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () =>
+                                  _handleOrderButtonTap(context, orderProvider),
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF5A35EB),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.double_arrow_rounded,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      Container(
+                        width: double.infinity,
+                        height: 400,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              spreadRadius: 1,
+                              blurRadius: 3,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Your Earnings',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Builder(
+                                  builder: (BuildContext context) {
+                                    return GestureDetector(
+                                      onTap: () {
+                                        _showFilterDropdown(
+                                          context,
+                                          dashboardProvider,
+                                        );
+                                      },
+                                      child: Container(
+                                        width: 94,
+                                        height: 30,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.all(
+                                                5.0,
+                                              ),
+                                              child: Text(
+                                                dashboardProvider
+                                                        .filterUsed
+                                                        .isNotEmpty
+                                                    ? _formatFilterText(
+                                                        dashboardProvider
+                                                            .filterUsed,
+                                                      )
+                                                    : 'This Week',
+                                                style: const TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ),
+                                            const Icon(
+                                              Icons.keyboard_arrow_down,
+                                              color: Colors.black,
+                                              size: 16,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            const Expanded(child: CustomLineChart()),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
-          );
-        },
+                ),
+              );
+            },
       ),
     );
   }

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ForgotPasswordService {
-  static const String baseUrl = 'http://31.97.206.144:7021/';
+  static const String baseUrl = 'https://api.simcurarx.com/';
   static const String forgotPasswordEndpoint = 'api/rider/forgot-password';
 
   Future<Map<String, dynamic>> resetPassword({

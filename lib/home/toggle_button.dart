@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -76,19 +75,15 @@ class _StatusToggleButtonState extends State<StatusToggleButton> {
       final riderId = riderData.id; // Adjust based on your RiderModel structure
       final token = await SharedPreferenceService.getToken();
 
-      final url = 'http://31.97.206.144:7021/api/rider/togglerider/$riderId';
+      final url = 'https://api.simcurarx.com/api/rider/togglerider/$riderId';
 
-      final headers = <String, String>{
-        'Content-Type': 'application/json',
-      };
+      final headers = <String, String>{'Content-Type': 'application/json'};
 
       if (token != null) {
         headers['Authorization'] = 'Bearer $token';
       }
 
-      final body = json.encode({
-        'status': newStatus,
-      });
+      final body = json.encode({'status': newStatus});
 
       final response = await http.put(
         Uri.parse(url),
@@ -159,10 +154,7 @@ class _StatusToggleButtonState extends State<StatusToggleButton> {
       onTap: _toggleStatus,
       child: Container(
         margin: const EdgeInsets.only(right: 16),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 10,
-          vertical: 4,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
           border: Border.all(color: Colors.grey),
           color: statusColor.withOpacity(0.8),

@@ -1,10 +1,9 @@
-
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/new_order_model.dart';
 
 class NewOrderService {
-  static const String baseUrl = 'http://31.97.206.144:7021/api';
+  static const String baseUrl = 'https://api.simcurarx.com/api';
 
   Future<List<NewOrder>> fetchNewOrders(String riderId) async {
     try {
@@ -34,9 +33,7 @@ class NewOrderService {
       final response = await http.put(
         Uri.parse('$baseUrl/rider/updateorderstatus/$orderId'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'status': status,
-        }),
+        body: json.encode({'status': status}),
       );
 
       print('Update Order Status Response Status: ${response.statusCode}');
@@ -72,8 +69,12 @@ class NewOrderService {
         }),
       );
 
-      print('Update Order Status with Pharmacy Response Status: ${response.statusCode}');
-      print('Update Order Status with Pharmacy Response Body: ${response.body}');
+      print(
+        'Update Order Status with Pharmacy Response Status: ${response.statusCode}',
+      );
+      print(
+        'Update Order Status with Pharmacy Response Body: ${response.body}',
+      );
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);

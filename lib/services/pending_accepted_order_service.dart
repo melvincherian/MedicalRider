@@ -3,7 +3,7 @@
 // import 'package:medical_delivery_app/models/pending_accepted_order_model.dart';
 
 // class PendingAcceptedOrderService {
-//   static const String baseUrl = 'http://31.97.206.144:7021/api';
+//   static const String baseUrl = 'https://api.simcurarx.com/api';
 
 //   Future<PendingAcceptedOrderResponse> fetchPendingAcceptedOrders(
 //       String riderId) async {
@@ -37,14 +37,14 @@
 //   try {
 //     final url = Uri.parse('$baseUrl/rider/accept-order-with-pharmacy');
 //     print('Accepting order with pharmacy: $url');
-    
+
 //     final requestBody = {
 //       'riderId': riderId,
 //       'orderId': orderId,
 //       'pharmacyId': pharmacyId,
 //       'status': 'Accepted'
 //     };
-    
+
 //     print('Request body: ${json.encode(requestBody)}');
 
 //     final response = await http.post(
@@ -109,27 +109,16 @@
 //   }
 // }
 
-
-
-
-
-
-
-
-
-
-
-
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:medical_delivery_app/models/pending_accepted_order_model.dart';
 
 class PendingAcceptedOrderService {
-  static const String baseUrl = 'http://31.97.206.144:7021/api';
+  static const String baseUrl = 'https://api.simcurarx.com/api';
 
   Future<PendingAcceptedOrderResponse> fetchPendingAcceptedOrders(
-      String riderId) async {
+    String riderId,
+  ) async {
     try {
       final url = Uri.parse('$baseUrl/rider/pendingacceptedorders/$riderId');
       print('Fetching pending accepted orders from: $url');
@@ -159,16 +148,14 @@ class PendingAcceptedOrderService {
     try {
       final url = Uri.parse('$baseUrl/rider/updateorderstatus/$orderId');
       print('Accepting order with pharmacy: $url');
-      
-
 
       final response = await http.put(
         Uri.parse('$baseUrl/rider/update-status/$riderId'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'newStatus': "Accepted",
-           "orderId":orderId,
-           "pharmacyId":pharmacyId
+          "orderId": orderId,
+          "pharmacyId": pharmacyId,
         }),
       );
 
@@ -176,12 +163,9 @@ class PendingAcceptedOrderService {
       print('Accept order response body: ${response.body}');
 
       if (response.statusCode == 200) {
-                final jsonData = json.decode(response.body);
+        final jsonData = json.decode(response.body);
 
-        return {
-          "success":true,
-          "message":jsonData['message']
-        };
+        return {"success": true, "message": jsonData['message']};
       } else {
         throw Exception('Failed to accept order: ${response.statusCode}');
       }

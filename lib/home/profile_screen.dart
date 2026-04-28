@@ -1,5 +1,3 @@
-
-
 // // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 // import 'package:flutter/material.dart';
@@ -14,7 +12,6 @@
 // import 'package:medical_delivery_app/providers/profile_provider.dart';
 // import 'package:medical_delivery_app/providers/login_provider.dart';
 // import 'package:medical_delivery_app/view/auth/splash_screen.dart';
-
 
 // class ProfileScreen extends StatefulWidget {
 //   const ProfileScreen({super.key});
@@ -482,29 +479,6 @@
 //   }
 // }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
@@ -521,7 +495,6 @@ import 'package:medical_delivery_app/view/auth/splash_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -545,7 +518,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _launchPrivacyPolicy() async {
-    const url = 'https://simcurarx-rider-privecy.vercel.app/privacy-and-policy'; // <-- Replace with your actual URL
+    const url =
+        'https://simcurarx-rider-privecy.vercel.app/privacy-and-policy'; // <-- Replace with your actual URL
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -623,7 +597,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // ---- Call your delete account API ----
         // Replace the URL and request body/params as per your API spec
         final response = await http.delete(
-          Uri.parse('http://31.97.206.144:7021//api/rider/delete-rider/$riderId'), // <-- Replace with your actual API URL
+          Uri.parse(
+            'https://api.simcurarx.com//api/rider/delete-rider/$riderId',
+          ), // <-- Replace with your actual API URL
           headers: {'Content-Type': 'application/json'},
         );
         // ----------------------------------------
@@ -654,9 +630,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             if (mounted) {
               Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(
-                  builder: (context) => const SplashScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const SplashScreen()),
                 (route) => false,
               );
             }
@@ -767,9 +741,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // Navigate to SplashScreen and remove all previous routes
             if (mounted) {
               Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(
-                  builder: (context) => const SplashScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const SplashScreen()),
                 (route) => false,
               );
             }

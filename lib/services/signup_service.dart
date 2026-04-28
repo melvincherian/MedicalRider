@@ -1,4 +1,3 @@
-
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -6,7 +5,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:medical_delivery_app/models/signup_model.dart';
 
 class SignupService {
-  static const String baseUrl = 'http://31.97.206.144:7021/';
+  static const String baseUrl = 'https://api.simcurarx.com/';
   static const String signupEndpoint = 'api/rider/signup';
 
   static String get signupUrl => '$baseUrl$signupEndpoint';
@@ -31,10 +30,7 @@ class SignupService {
         return SignupResponse.error('Driving license file not found');
       }
 
-
-
-
-       if (File(request.profileImage).existsSync()) {
+      if (File(request.profileImage).existsSync()) {
         var file = await http.MultipartFile.fromPath(
           'profileImage',
           request.drivingLicensePath,
@@ -63,17 +59,16 @@ class SignupService {
         try {
           var jsonResponse = json.decode(response.body);
 
-
-
-          
           // Check if the response contains the expected success indicators
-          if (jsonResponse['message'] != null && 
-              (jsonResponse['message'].toString().toLowerCase().contains('success') ||
-               jsonResponse['rider'] != null)) {
+          if (jsonResponse['message'] != null &&
+              (jsonResponse['message'].toString().toLowerCase().contains(
+                    'success',
+                  ) ||
+                  jsonResponse['rider'] != null)) {
             return SignupResponse.fromJson(jsonResponse);
           } else {
             return SignupResponse.error(
-              jsonResponse['message'] ?? 'Unknown error occurred'
+              jsonResponse['message'] ?? 'Unknown error occurred',
             );
           }
         } catch (e) {
@@ -108,9 +103,7 @@ class SignupService {
           'Invalid response from server. Please try again.',
         );
       } else {
-        return SignupResponse.error(
-          'Something went wrong. Please try again.',
-        );
+        return SignupResponse.error('Something went wrong. Please try again.');
       }
     }
   }
@@ -132,7 +125,9 @@ class SignupService {
 
       // Check file extension
       final allowedExtensions = ['.jpg', '.jpeg', '.png'];
-      final fileExtension = filePath.toLowerCase().substring(filePath.lastIndexOf('.'));
+      final fileExtension = filePath.toLowerCase().substring(
+        filePath.lastIndexOf('.'),
+      );
       if (!allowedExtensions.contains(fileExtension)) {
         return false;
       }

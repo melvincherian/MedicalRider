@@ -5,7 +5,7 @@
 //   const HelpScreen({super.key});
 
 //   // Support number & email
-//   final String supportNumber = "tel:+919876543210"; 
+//   final String supportNumber = "tel:+919876543210";
 //   final String supportEmail = "mailto:support@medicalapp.com?subject=App Support&body=Hello, I need help with...";
 
 //   Future<void> _launchUrl(String url) async {
@@ -117,19 +117,6 @@
 //   }
 // }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
@@ -166,13 +153,11 @@ class _HelpScreenState extends State<HelpScreen> {
       });
 
       final response = await http.get(
-        Uri.parse('http://31.97.206.144:7021/api/admin/allfaq'),
+        Uri.parse('https://api.simcurarx.com/api/admin/allfaq'),
       );
-
 
       print('response status code for allfaqs ${response.statusCode}');
       print('response bodyyyyyyyyyyy for faqs ${response.body}');
-
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -280,10 +265,12 @@ class _HelpScreenState extends State<HelpScreen> {
                   ),
                 )
               else
-                ...faqs.map((faq) => _buildFaqItem(
-                      faq['question'] ?? 'No question',
-                      faq['answer'] ?? 'No answer',
-                    )),
+                ...faqs.map(
+                  (faq) => _buildFaqItem(
+                    faq['question'] ?? 'No question',
+                    faq['answer'] ?? 'No answer',
+                  ),
+                ),
 
               const SizedBox(height: 20),
 
@@ -296,7 +283,8 @@ class _HelpScreenState extends State<HelpScreen> {
 
               Card(
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 elevation: 2,
                 child: ListTile(
                   leading: const Icon(Icons.call, color: Colors.blue),
@@ -311,7 +299,8 @@ class _HelpScreenState extends State<HelpScreen> {
 
               Card(
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 elevation: 2,
                 child: ListTile(
                   leading: const Icon(Icons.email, color: Colors.blue),
@@ -332,9 +321,7 @@ class _HelpScreenState extends State<HelpScreen> {
 
   Widget _buildFaqItem(String question, String answer) {
     return ExpansionTile(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       tilePadding: const EdgeInsets.symmetric(horizontal: 12),
       title: Text(
         question,
@@ -344,7 +331,7 @@ class _HelpScreenState extends State<HelpScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Text(answer, style: TextStyle(color: Colors.grey.shade700)),
-        )
+        ),
       ],
     );
   }

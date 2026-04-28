@@ -154,7 +154,7 @@
 
 //     for (final image in _pharmacyImages[pharmacyId]!) {
 //       final uri = Uri.parse(
-//         'http://31.97.206.144:7021/api/rider/upload-medicine-proof/'
+//         'https://api.simcurarx.com/api/rider/upload-medicine-proof/'
 //         '${widget.riderId}/${widget.orderId}/$pharmacyId',
 //       );
 
@@ -1240,7 +1240,7 @@ class _ConfirmOrderModalState extends State<ConfirmOrderModal> {
 
       for (final image in _pharmacyImages[pharmacyId]!) {
         final uri = Uri.parse(
-          'http://31.97.206.144:7021/api/rider/upload-medicine-proof/'
+          'https://api.simcurarx.com/api/rider/upload-medicine-proof/'
           '${widget.riderId}/${widget.orderId}/$pharmacyId',
         );
 

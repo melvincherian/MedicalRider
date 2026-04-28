@@ -87,7 +87,7 @@
 // //                 ),
 // //               ),
 // //               const SizedBox(height: 20),
-              
+
 // //               const Text(
 // //                 'Select Image Source',
 // //                 style: TextStyle(
@@ -96,7 +96,7 @@
 // //                 ),
 // //               ),
 // //               const SizedBox(height: 20),
-              
+
 // //               // Camera option
 // //               ListTile(
 // //                 leading: Container(
@@ -117,8 +117,7 @@
 // //                   _takePhoto();
 // //                 },
 // //               ),
-              
-        
+
 // //               const SizedBox(height: 10),
 // //             ],
 // //           ),
@@ -140,7 +139,7 @@
 // //     try {
 // //       var request = http.MultipartRequest(
 // //         'POST',
-// //         Uri.parse('http://31.97.206.144:7021/api/rider/uploadDeliveryProof/${widget.userId}/${widget.orderId}'),
+// //         Uri.parse('https://api.simcurarx.com/api/rider/uploadDeliveryProof/${widget.userId}/${widget.orderId}'),
 // //       );
 
 // //       // Add the image file
@@ -163,19 +162,19 @@
 // //         // Success
 // //         final responseData = json.decode(response.body);
 // //         _showSuccessSnackbar('Image uploaded successfully!');
-        
+
 // //         // Clear the selected image
 // //         setState(() {
 // //           _selectedImage = null;
 // //         });
 
 // // Navigator.pop(context);
-        
+
 // //         // Call success callback
 // //         // if (widget.onUploadSuccess != null) {
 // //         //   widget.onUploadSuccess!();
 // //         // }
-        
+
 // //         print('Upload successful: $responseData');
 // //       } else {
 // //         // Error
@@ -262,9 +261,9 @@
 // //               ),
 // //             ],
 // //           ),
-          
+
 // //           const SizedBox(height: 12),
-          
+
 // //           Text(
 // //             'Take a photo as proof of delivery',
 // //             style: TextStyle(
@@ -272,9 +271,9 @@
 // //               color: Colors.grey[600],
 // //             ),
 // //           ),
-          
+
 // //           const SizedBox(height: 16),
-          
+
 // //           // Image preview or placeholder
 // //           GestureDetector(
 // //             onTap: _selectedImage == null ? _showImageSourceDialog : null,
@@ -343,9 +342,9 @@
 // //                     ),
 // //             ),
 // //           ),
-          
+
 // //           const SizedBox(height: 16),
-          
+
 // //           // Action buttons
 // //           Row(
 // //             children: [
@@ -414,17 +413,6 @@
 // //     );
 // //   }
 // // }
-
-
-
-
-
-
-
-
-
-
-
 
 // import 'dart:io';
 // import 'package:flutter/material.dart';
@@ -536,7 +524,7 @@
 //                 ),
 //               ),
 //               const SizedBox(height: 24),
-              
+
 //               Padding(
 //                 padding: const EdgeInsets.symmetric(horizontal: 24),
 //                 child: Column(
@@ -562,9 +550,9 @@
 //                   ],
 //                 ),
 //               ),
-              
+
 //               const SizedBox(height: 24),
-              
+
 //               Padding(
 //                 padding: const EdgeInsets.symmetric(horizontal: 16),
 //                 child: Column(
@@ -597,7 +585,7 @@
 //                   ],
 //                 ),
 //               ),
-              
+
 //               const SizedBox(height: 24),
 //             ],
 //           ),
@@ -687,7 +675,7 @@
 //     try {
 //       var request = http.MultipartRequest(
 //         'POST',
-//         Uri.parse('http://31.97.206.144:7021/api/rider/uploadDeliveryProof/${widget.userId}/${widget.orderId}'),
+//         Uri.parse('https://api.simcurarx.com/api/rider/uploadDeliveryProof/${widget.userId}/${widget.orderId}'),
 //       );
 
 //       request.files.add(
@@ -703,13 +691,13 @@
 //       if (response.statusCode == 200 || response.statusCode == 201) {
 //         final responseData = json.decode(response.body);
 //         _showSuccessSnackbar('Image uploaded successfully!');
-        
+
 //         setState(() {
 //           _selectedImage = null;
 //         });
 
 //         Navigator.pop(context);
-        
+
 //         print('Upload successful: $responseData');
 //       } else {
 //         final errorData = json.decode(response.body);
@@ -863,7 +851,7 @@
 //                 ],
 //               ),
 //             ),
-            
+
 //             // Content Section
 //             Padding(
 //               padding: const EdgeInsets.all(20),
@@ -880,7 +868,7 @@
 //                         color: _selectedImage != null ? Colors.black : Colors.grey[100],
 //                         borderRadius: BorderRadius.circular(16),
 //                         border: Border.all(
-//                           color: _selectedImage != null 
+//                           color: _selectedImage != null
 //                               ? const Color(0xFF5931DD).withOpacity(0.3)
 //                               : Colors.grey[300]!,
 //                           width: 2,
@@ -1015,9 +1003,9 @@
 //                             ),
 //                     ),
 //                   ),
-                  
+
 //                   const SizedBox(height: 20),
-                  
+
 //                   // Action buttons
 //                   if (_selectedImage == null)
 //                     SizedBox(
@@ -1123,18 +1111,6 @@
 //   }
 // }
 
-
-
-
-
-
-
-
-
-
-
-
-
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -1197,10 +1173,10 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget>
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.15),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero).animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+        );
 
     _slideController.forward();
   }
@@ -1260,7 +1236,9 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget>
             child: Container(
               decoration: BoxDecoration(
                 color: const Color(0xFF0F0A1E).withOpacity(0.95),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(32),
+                ),
                 border: Border.all(
                   color: Colors.white.withOpacity(0.08),
                   width: 1,
@@ -1293,7 +1271,11 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget>
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 24),
+                        child: const Icon(
+                          Icons.bolt_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                       ),
                       const SizedBox(width: 14),
                       Column(
@@ -1444,7 +1426,8 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget>
       var request = http.MultipartRequest(
         'POST',
         Uri.parse(
-            'http://31.97.206.144:7021/api/rider/uploadDeliveryProof/${widget.userId}/${widget.orderId}'),
+          'https://api.simcurarx.com/api/rider/uploadDeliveryProof/${widget.userId}/${widget.orderId}',
+        ),
       );
       request.files.add(
         await http.MultipartFile.fromPath('image', _selectedImage!.path),
@@ -1458,7 +1441,9 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget>
         Navigator.pop(context);
       } else {
         final errorData = json.decode(response.body);
-        _showErrorSnackbar('Upload failed: ${errorData['message'] ?? 'Unknown error'}');
+        _showErrorSnackbar(
+          'Upload failed: ${errorData['message'] ?? 'Unknown error'}',
+        );
       }
     } catch (e) {
       _showErrorSnackbar('Upload failed: $e');
@@ -1470,31 +1455,57 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget>
   void _removeImage() => setState(() => _selectedImage = null);
 
   void _showErrorSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Row(children: [
-        const Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
-        const SizedBox(width: 10),
-        Expanded(child: Text(message, style: const TextStyle(fontWeight: FontWeight.w500))),
-      ]),
-      backgroundColor: const Color(0xFFDC2626),
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      margin: const EdgeInsets.all(16),
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(
+              Icons.error_outline_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFFDC2626),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   void _showSuccessSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Row(children: [
-        const Icon(Icons.check_circle_outline_rounded, color: Colors.white, size: 20),
-        const SizedBox(width: 10),
-        Expanded(child: Text(message, style: const TextStyle(fontWeight: FontWeight.w500))),
-      ]),
-      backgroundColor: const Color(0xFF059669),
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      margin: const EdgeInsets.all(16),
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(
+              Icons.check_circle_outline_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFF059669),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   @override
@@ -1544,10 +1555,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget>
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF1A0533),
-                    Color(0xFF0F0A1E),
-                  ],
+                  colors: [Color(0xFF1A0533), Color(0xFF0F0A1E)],
                 ),
               ),
             ),
@@ -1612,7 +1620,11 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget>
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.verified_rounded, color: Colors.white, size: 26),
+                    child: const Icon(
+                      Icons.verified_rounded,
+                      color: Colors.white,
+                      size: 26,
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Column(
@@ -1723,10 +1735,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget>
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Image.file(
-                        _selectedImage!,
-                        fit: BoxFit.cover,
-                      ),
+                      Image.file(_selectedImage!, fit: BoxFit.cover),
                       // Dark gradient overlay bottom
                       Positioned.fill(
                         child: DecoratedBox(
@@ -1795,7 +1804,9 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget>
                                   Container(
                                     padding: const EdgeInsets.all(6),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF10B981).withOpacity(0.2),
+                                      color: const Color(
+                                        0xFF10B981,
+                                      ).withOpacity(0.2),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: const Icon(
@@ -1819,7 +1830,9 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget>
                                     child: Text(
                                       'Change',
                                       style: TextStyle(
-                                        color: const Color(0xFFEC4899).withOpacity(0.9),
+                                        color: const Color(
+                                          0xFFEC4899,
+                                        ).withOpacity(0.9),
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -1849,11 +1862,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget>
       child: Stack(
         children: [
           // Background pattern dots
-          Positioned.fill(
-            child: CustomPaint(
-              painter: _DotPatternPainter(),
-            ),
-          ),
+          Positioned.fill(child: CustomPaint(painter: _DotPatternPainter())),
           // Center content
           Center(
             child: Column(
@@ -1923,17 +1932,12 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget>
       children: items.map((item) {
         return Expanded(
           child: Container(
-            margin: EdgeInsets.only(
-              right: item == items.last ? 0 : 10,
-            ),
+            margin: EdgeInsets.only(right: item == items.last ? 0 : 10),
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
             decoration: BoxDecoration(
               color: item.$3.withOpacity(0.08),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: item.$3.withOpacity(0.15),
-                width: 1,
-              ),
+              border: Border.all(color: item.$3.withOpacity(0.15), width: 1),
             ),
             child: Column(
               children: [
@@ -1998,7 +2002,10 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget>
             ),
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white70,
-              side: BorderSide(color: Colors.white.withOpacity(0.12), width: 1.5),
+              side: BorderSide(
+                color: Colors.white.withOpacity(0.12),
+                width: 1.5,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),

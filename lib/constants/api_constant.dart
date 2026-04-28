@@ -1,5 +1,5 @@
 class ApiConstant {
-  static const String baseUrl = 'http://31.97.206.144:7021/';
+  static const String baseUrl = 'https://api.simcurarx.com/';
   static const String loginEndpoint = 'api/rider/login';
   static const String dashboardEndpoint = 'api/rider/dashboard';
   static const String neworderapi = 'api/rider/neworders';

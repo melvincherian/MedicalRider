@@ -67,7 +67,7 @@ class _OrderDeliveredModalState extends State<OrderDeliveredModal> {
       print('Fetching from API...');
       final response = await http.get(
         Uri.parse(
-          'http://31.97.206.144:7021/api/rider/pickeduporders/$riderid',
+          'https://api.simcurarx.com/api/rider/pickeduporders/$riderid',
         ),
         headers: {'Content-Type': 'application/json'},
       );
@@ -133,7 +133,7 @@ class _OrderDeliveredModalState extends State<OrderDeliveredModal> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://31.97.206.144:7021/api/rider/upi-info'),
+        Uri.parse('https://api.simcurarx.com/api/rider/upi-info'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -322,7 +322,7 @@ class _OrderDeliveredModalState extends State<OrderDeliveredModal> {
 
       final response = await http.put(
         Uri.parse(
-          'http://31.97.206.144:7021/api/rider/deliver-order/$riderid/${widget.orderId}',
+          'https://api.simcurarx.com/api/rider/deliver-order/$riderid/${widget.orderId}',
         ),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(payload),
