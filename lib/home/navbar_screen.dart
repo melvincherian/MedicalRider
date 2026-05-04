@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:medical_delivery_app/home/history_screen.dart';
 import 'package:medical_delivery_app/home/home_screen.dart';
@@ -20,10 +19,9 @@ class NavbarScreen extends StatelessWidget {
 
     final pages = [
       HomeScreen(),
-            HistoryScreen(),
-
+      HistoryScreen(),
       WalletScreen(),
-      ProfileScreen()
+      ProfileScreen(),
     ];
 
     return Scaffold(
@@ -44,7 +42,9 @@ class NavbarScreen extends StatelessWidget {
           currentIndex: bottomnavbarProvider.currentIndex,
           onTap: (index) => bottomnavbarProvider.setIndex(index),
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: Color(0xFF6C63FF), // Purple color matching your image
+          selectedItemColor: Color(
+            0xFF6C63FF,
+          ), // Purple color matching your image
           unselectedItemColor: Colors.grey[500],
           backgroundColor: Colors.transparent,
           elevation: 0,

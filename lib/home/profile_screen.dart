@@ -483,6 +483,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:medical_delivery_app/profile/profile_detail_screen.dart';
+import 'package:medical_delivery_app/providers/navbar_provider.dart';
 import 'package:medical_delivery_app/utils/helper_function.dart';
 import 'package:medical_delivery_app/view/documents/document_screen.dart';
 import 'package:medical_delivery_app/view/privacy/about_us.dart';
@@ -493,7 +494,6 @@ import 'package:medical_delivery_app/providers/profile_provider.dart';
 import 'package:medical_delivery_app/providers/login_provider.dart';
 import 'package:medical_delivery_app/view/auth/splash_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ProfileScreen extends StatefulWidget {
@@ -598,7 +598,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // Replace the URL and request body/params as per your API spec
         final response = await http.delete(
           Uri.parse(
-            'https://api.simcurarx.com//api/rider/delete-rider/$riderId',
+            'https://api.simcurarx.com/api/rider/delete-rider/$riderId',
           ), // <-- Replace with your actual API URL
           headers: {'Content-Type': 'application/json'},
         );
@@ -629,6 +629,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             await Future.delayed(const Duration(milliseconds: 500));
 
             if (mounted) {
+              context.read<BottomNavbarProvider>().setIndex(0);
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => const SplashScreen()),
                 (route) => false,
@@ -740,6 +741,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             // Navigate to SplashScreen and remove all previous routes
             if (mounted) {
+              context.read<BottomNavbarProvider>().setIndex(0);
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => const SplashScreen()),
                 (route) => false,

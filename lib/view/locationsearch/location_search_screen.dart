@@ -456,7 +456,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
                           child: GooglePlaceAutoCompleteTextField(
                             textEditingController: _searchController,
                             focusNode: _focusNode,
-                            googleAPIKey: "AIzaSyBAgjZGzhUBDznc-wI5eGRHyjVTfENnLSs",
+                            googleAPIKey: "AIzaSyDaJzdZ5-Q2Lv2KArStqAtGXf4SukdHwig",
                             inputDecoration: InputDecoration(
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 20,
