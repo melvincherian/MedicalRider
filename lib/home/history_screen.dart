@@ -37,185 +37,231 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.history, color: Colors.black, size: 20),
-        ),
-        title: const Text(
-          'Order History',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+    return PopScope(
+      canPop: false,
+          onPopInvokedWithResult: (didPop, result) async {
+      if (didPop) return;
+
+      final shouldExit = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-        ),
-        centerTitle: false,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => NotificationScreen()),
-                );
-              },
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey, width: 1),
-                  borderRadius: BorderRadius.circular(12),
+          title: const Text(
+            'Exit App',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text('Are you sure you want to exit?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF5A35EB),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Stack(
-                  children: [
-                    const Center(
-                      child: Icon(
-                        Icons.notifications_outlined,
-                        color: Colors.black,
-                        size: 24,
-                      ),
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
+              ),
+              child: const Text(
+                'Exit',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldExit == true && context.mounted) {
+        Navigator.of(context).pop();
+      }
+    },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.history, color: Colors.black, size: 20),
+          ),
+          title: const Text(
+            'Order History',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          centerTitle: false,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => NotificationScreen()),
+                  );
+                },
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey, width: 1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Stack(
+                    children: [
+                      const Center(
+                        child: Icon(
+                          Icons.notifications_outlined,
+                          color: Colors.black,
+                          size: 24,
                         ),
                       ),
-                    ),
-                  ],
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-      body: Consumer<HistoryProvider>(
-        builder: (context, historyProvider, child) {
-          if (historyProvider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-              ),
-            );
-          }
-
-          if (historyProvider.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.red, size: 60),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error: ${historyProvider.errorMessage}',
-                    style: const TextStyle(color: Colors.red, fontSize: 16),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      historyProvider.clearError();
-                      historyProvider.fetchAllOrders();
-                    },
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () => historyProvider.refreshOrders(),
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Active Orders Section
-                  if (historyProvider.hasActiveOrders) ...[
-                    const Text(
-                      'Active Orders',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
+          ],
+        ),
+        body: Consumer<HistoryProvider>(
+          builder: (context, historyProvider, child) {
+            if (historyProvider.isLoading) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                ),
+              );
+            }
+      
+            if (historyProvider.hasError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red, size: 60),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Error: ${historyProvider.errorMessage}',
+                      style: const TextStyle(color: Colors.red, fontSize: 16),
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
-                    ...historyProvider.activeOrders.map(
-                      (order) => _buildOrderCard(
-                        order,
-                        historyProvider,
-                        isActive: true,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-
-                  // Previous Orders Section
-                  if (historyProvider.hasPreviousOrders) ...[
-                    const Text(
-                      'Previous Orders',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ...historyProvider.previousOrders.map(
-                      (order) => _buildOrderCard(
-                        order,
-                        historyProvider,
-                        isActive: false,
-                      ),
+                    ElevatedButton(
+                      onPressed: () {
+                        historyProvider.clearError();
+                        historyProvider.fetchAllOrders();
+                      },
+                      child: const Text('Retry'),
                     ),
                   ],
-
-                  // Empty state
-                  if (!historyProvider.hasActiveOrders &&
-                      !historyProvider.hasPreviousOrders) ...[
-                    const SizedBox(height: 100),
-                    const Center(
-                      child: Column(
-                        children: [
-                          Icon(Icons.history, size: 80, color: Colors.grey),
-                          SizedBox(height: 16),
-                          Text(
-                            'No order history found',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
+                ),
+              );
+            }
+      
+            return RefreshIndicator(
+              onRefresh: () => historyProvider.refreshOrders(),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Active Orders Section
+                    if (historyProvider.hasActiveOrders) ...[
+                      const Text(
+                        'Active Orders',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ...historyProvider.activeOrders.map(
+                        (order) => _buildOrderCard(
+                          order,
+                          historyProvider,
+                          isActive: true,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+      
+                    // Previous Orders Section
+                    if (historyProvider.hasPreviousOrders) ...[
+                      const Text(
+                        'Previous Orders',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ...historyProvider.previousOrders.map(
+                        (order) => _buildOrderCard(
+                          order,
+                          historyProvider,
+                          isActive: false,
+                        ),
+                      ),
+                    ],
+      
+                    // Empty state
+                    if (!historyProvider.hasActiveOrders &&
+                        !historyProvider.hasPreviousOrders) ...[
+                      const SizedBox(height: 100),
+                      const Center(
+                        child: Column(
+                          children: [
+                            Icon(Icons.history, size: 80, color: Colors.grey),
+                            SizedBox(height: 16),
+                            Text(
+                              'No order history found',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.grey,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Your completed and active orders will appear here',
-                            style: TextStyle(fontSize: 14, color: Colors.grey),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                            SizedBox(height: 8),
+                            Text(
+                              'Your completed and active orders will appear here',
+                              style: TextStyle(fontSize: 14, color: Colors.grey),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

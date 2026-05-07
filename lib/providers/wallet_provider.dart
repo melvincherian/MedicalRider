@@ -119,7 +119,7 @@ class WalletProvider extends ChangeNotifier {
   String get customerTips {
     // This is a placeholder calculation - adjust based on your business logic
     if (_walletData != null) {
-      double tipsAmount = walletAmount * 0.1; // 10% of wallet as tips example
+      double tipsAmount = walletAmount * 0; // 10% of wallet as tips example
       return '₹${tipsAmount.toStringAsFixed(2)}';
     }
     return '₹0.00';

@@ -784,229 +784,277 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        final shouldExit = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Text(
+              'Exit App',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            content: const Text('Are you sure you want to exit?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF5A35EB),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Exit',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        );
+
+        if (shouldExit == true && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Profile',
-          style: TextStyle(
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          title: const Text(
+            'Profile',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          leading: const Icon(
+            Icons.person_outline,
             color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
+            size: 24,
           ),
         ),
-        leading: const Icon(
-          Icons.person_outline,
-          color: Colors.black,
-          size: 24,
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Consumer<ProfileProvider>(
-              builder: (context, profileProvider, child) {
-                return Container(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    children: [
-                      Stack(
-                        children: [
-                          _buildProfileAvatar(profileProvider),
-                          if (profileProvider.isLoading)
-                            Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.black.withOpacity(0.3),
-                              ),
-                              child: const Center(
-                                child: SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(width: 15),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Consumer<ProfileProvider>(
+                builder: (context, profileProvider, child) {
+                  return Container(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        Stack(
                           children: [
-                            Text(
-                              profileProvider.rider?.name ?? 'Loading...',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                              ),
-                            ),
-                            if (profileProvider.rider?.email != null &&
-                                profileProvider.rider!.email.isNotEmpty)
-                              Text(
-                                profileProvider.rider!.email,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[600],
+                            _buildProfileAvatar(profileProvider),
+                            if (profileProvider.isLoading)
+                              Container(
+                                width: 60,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black.withOpacity(0.3),
                                 ),
-                              ),
-                            if (profileProvider.error != null)
-                              GestureDetector(
-                                onTap: () {
-                                  profileProvider.clearError();
-                                  profileProvider.initializeProfile();
-                                },
-                                child: Text(
-                                  'Tap to retry',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.red[600],
-                                    decoration: TextDecoration.underline,
+                                child: const Center(
+                                  child: SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
                                   ),
                                 ),
                               ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-
-            const Divider(),
-            const SizedBox(height: 10),
-
-            _buildMenuItem(
-              icon: Icons.person,
-              iconColor: Colors.blue,
-              title: 'Profile',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ProfileDetailScreen(),
-                  ),
-                );
-              },
-            ),
-
-            Padding(
-              padding: const EdgeInsets.only(left: 20, top: 20, bottom: 10),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Support & Settings',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                        const SizedBox(width: 15),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                profileProvider.rider?.name ?? 'Loading...',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              if (profileProvider.rider?.email != null &&
+                                  profileProvider.rider!.email.isNotEmpty)
+                                Text(
+                                  profileProvider.rider!.email,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              if (profileProvider.error != null)
+                                GestureDetector(
+                                  onTap: () {
+                                    profileProvider.clearError();
+                                    profileProvider.initializeProfile();
+                                  },
+                                  child: Text(
+                                    'Tap to retry',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.red[600],
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
-            ),
 
-            _buildMenuItem(
-              icon: Icons.privacy_tip_outlined,
-              iconColor: Colors.orange,
-              title: 'Privacy Policy',
-              onTap: _launchPrivacyPolicy,
-            ),
+              const Divider(),
+              const SizedBox(height: 10),
 
-            _buildMenuItem(
-              icon: Icons.info_outline,
-              iconColor: Colors.cyan,
-              title: 'About Us',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AboutUs()),
-                );
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.help_outline,
-              iconColor: Colors.blue,
-              title: 'Help',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HelpScreen()),
-                );
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.article,
-              iconColor: Colors.blue,
-              title: 'Documents',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DocumentScreen(),
-                  ),
-                );
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.help_center_outlined,
-              iconColor: Colors.green,
-              title: 'Submit Query',
-              onTap: () {
-                final profileProvider = context.read<ProfileProvider>();
-                final riderId = profileProvider.rider?.id;
-
-                if (riderId != null && riderId.isNotEmpty) {
+              _buildMenuItem(
+                icon: Icons.person,
+                iconColor: Colors.blue,
+                title: 'Profile',
+                onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => QueryScreen(riderId: riderId),
+                      builder: (context) => const ProfileDetailScreen(),
                     ),
                   );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Unable to load user data. Please try again.',
+                },
+              ),
+
+              Padding(
+                padding: const EdgeInsets.only(left: 20, top: 20, bottom: 10),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Support & Settings',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+
+              _buildMenuItem(
+                icon: Icons.privacy_tip_outlined,
+                iconColor: Colors.orange,
+                title: 'Privacy Policy',
+                onTap: _launchPrivacyPolicy,
+              ),
+
+              _buildMenuItem(
+                icon: Icons.info_outline,
+                iconColor: Colors.cyan,
+                title: 'About Us',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AboutUs()),
+                  );
+                },
+              ),
+
+              _buildMenuItem(
+                icon: Icons.help_outline,
+                iconColor: Colors.blue,
+                title: 'Help',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HelpScreen()),
+                  );
+                },
+              ),
+
+              _buildMenuItem(
+                icon: Icons.article,
+                iconColor: Colors.blue,
+                title: 'Documents',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DocumentScreen(),
+                    ),
+                  );
+                },
+              ),
+
+              _buildMenuItem(
+                icon: Icons.help_center_outlined,
+                iconColor: Colors.green,
+                title: 'Submit Query',
+                onTap: () {
+                  final profileProvider = context.read<ProfileProvider>();
+                  final riderId = profileProvider.rider?.id;
+
+                  if (riderId != null && riderId.isNotEmpty) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => QueryScreen(riderId: riderId),
                       ),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  profileProvider.initializeProfile();
-                }
-              },
-            ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Unable to load user data. Please try again.',
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    profileProvider.initializeProfile();
+                  }
+                },
+              ),
 
-            _buildMenuItem(
-              icon: Icons.delete_outline,
-              iconColor: _isDeletingAccount ? Colors.grey : Colors.red,
-              title: 'Delete Account',
-              titleColor: _isDeletingAccount ? Colors.grey : Colors.red,
-              onTap: _isDeletingAccount ? null : () => _deleteAccount(context),
-              showLoadingIndicator: _isDeletingAccount,
-            ),
+              _buildMenuItem(
+                icon: Icons.delete_outline,
+                iconColor: _isDeletingAccount ? Colors.grey : Colors.red,
+                title: 'Delete Account',
+                titleColor: _isDeletingAccount ? Colors.grey : Colors.red,
+                onTap: _isDeletingAccount
+                    ? null
+                    : () => _deleteAccount(context),
+                showLoadingIndicator: _isDeletingAccount,
+              ),
 
-            _buildMenuItem(
-              icon: Icons.logout,
-              iconColor: _isLoggingOut ? Colors.grey : Colors.purple,
-              title: 'Logout',
-              onTap: _isLoggingOut ? null : () => _logout(context),
-              showLoadingIndicator: _isLoggingOut,
-            ),
+              _buildMenuItem(
+                icon: Icons.logout,
+                iconColor: _isLoggingOut ? Colors.grey : Colors.purple,
+                title: 'Logout',
+                onTap: _isLoggingOut ? null : () => _logout(context),
+                showLoadingIndicator: _isLoggingOut,
+              ),
 
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );

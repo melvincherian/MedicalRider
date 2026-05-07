@@ -1275,493 +1275,540 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: Consumer<ProfileProvider>(
-          builder: (context, profileProvider, child) {
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ProfileScreen()),
-                );
-              },
-              child: Container(
-                margin: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: Colors.orange,
-                  shape: BoxShape.circle,
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: _getProfileImage(profileProvider),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
+    return PopScope(
+      canPop: false,
+          onPopInvokedWithResult: (didPop, result) async {
+      if (didPop) return;
+
+      final shouldExit = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            'Exit App',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text('Are you sure you want to exit?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF5A35EB),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
-            );
-          },
+              child: const Text(
+                'Exit',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
         ),
-        title: Consumer2<ProfileProvider, LocationProvider>(
-          builder: (context, profileProvider, locationProvider, child) {
-            final displayName = profileProvider.rider?.name ?? riderName;
-            final displayid = profileProvider.rider?.id ?? '';
+      );
 
-            final addressParts = (locationProvider?.address ?? '')
-                .split(',')
-                .map((e) => e.trim())
-                .toList();
-            final primaryAddress = addressParts.isNotEmpty
-                ? addressParts[0]
-                : 'Unknown location';
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Hello $displayName',
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            LocationSearchScreen(userId: displayid.toString()),
-                      ),
-                    );
-
-                    if (result == true && mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Row(
-                            children: [
-                              Icon(
-                                Icons.location_on,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                              SizedBox(width: 8),
-                              Text('Updating  location...'),
-                            ],
-                          ),
-                          backgroundColor: Color(0xFF6366F1),
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          margin: EdgeInsets.all(16),
-                        ),
-                      );
-                    }
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        color: Color(0xFF6366F1),
-                        size: 16,
-                      ),
-                      SizedBox(width: 4),
-                      Flexible(
-                        child: locationProvider?.isLoading == true
-                            ? Row(
-                                children: [
-                                  SizedBox(
-                                    width: 12,
-                                    height: 12,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Color(0xFF6366F1),
-                                    ),
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    'Loading...',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[600],
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : locationProvider?.hasError == true
-                            ? Text(
-                                'Tap to set location',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF6366F1),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              )
-                            : Text(
-                                primaryAddress,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-        actions: [
-          StatusToggleButton(),
-          Stack(
-            children: [
-              GestureDetector(
+      if (shouldExit == true && context.mounted) {
+        // This actually exits the app
+        Navigator.of(context).pop();
+      }
+    },
+      child: Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: Consumer<ProfileProvider>(
+            builder: (context, profileProvider, child) {
+              return GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => NotificationScreen(),
-                    ),
+                    MaterialPageRoute(builder: (context) => ProfileScreen()),
                   );
                 },
                 child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(11),
-                    border: Border.all(
-                      color: const Color.fromARGB(255, 194, 193, 193),
+                  margin: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: Colors.orange,
+                    shape: BoxShape.circle,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: _getProfileImage(profileProvider),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     ),
-                  ),
-                  child: const Icon(
-                    Icons.notifications_outlined,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              Consumer<NewOrderProvider>(
-                builder: (context, orderProvider, child) {
-                  if (orderProvider.pendingOrders.isNotEmpty) {
-                    return Positioned(
-                      right: 10,
-                      top: 10,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-            ],
-          ),
-          const SizedBox(width: 16),
-        ],
-      ),
-      body: Consumer3<DashboardProvider, NewOrderProvider, ProfileProvider>(
-        builder:
-            (
-              context,
-              dashboardProvider,
-              orderProvider,
-              profileProvider,
-              child,
-            ) {
-              if (_isInitialized) {
-                final currentCount = orderProvider.pendingOrders.length;
-                if (currentCount != _previousPendingOrdersCount ||
-                    (currentCount > 0 && !_hasShownModal)) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    _checkAndShowPendingOrderModal();
-                  });
-                }
-              }
-
-              if (dashboardProvider.isLoading && !dashboardProvider.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              return RefreshIndicator(
-                onRefresh: () async {
-                  await Future.wait([
-                    dashboardProvider.refreshDashboard(),
-                    orderProvider.refreshOrders(riderid),
-                    profileProvider.initializeProfile(),
-                  ]);
-                  // After refresh, check for new orders
-                  _checkAndShowPendingOrderModal();
-                },
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      if (dashboardProvider.errorMessage != null)
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(12),
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: Colors.red[50],
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.red[200]!),
-                          ),
-                          child: Text(
-                            dashboardProvider.errorMessage!,
-                            style: TextStyle(color: Colors.red[700]),
-                          ),
-                        ),
-
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildStatCardWithNavigation(
-                              title: 'Today Orders',
-                              value: dashboardProvider.todayOrders.toString(),
-                              color: Colors.white,
-                              textColor: Colors.black,
-                              navigationFilter: OrderStatusType.all,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildStatCardWithNavigation(
-                              title: 'Pending',
-                              value: orderProvider.pendingOrders.length
-                                  .toString(),
-                              color: Colors.orange[50]!,
-                              textColor: Colors.orange,
-                              navigationFilter: OrderStatusType.pending,
-                              specificOrderId:
-                                  orderProvider.pendingOrders.isNotEmpty
-                                  ? orderProvider.pendingOrders.first.id
-                                  : null,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildStatCardWithNavigation(
-                              title: 'Cancelled',
-                              value: dashboardProvider.cancelledOrders
-                                  .toString(),
-                              color: Colors.red[50]!,
-                              textColor: Colors.red,
-                              navigationFilter: OrderStatusType.cancelled,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildStatCardWithNavigation(
-                              title: 'Completed',
-                              value: dashboardProvider.completedOrders
-                                  .toString(),
-                              color: Colors.green[50]!,
-                              textColor: Colors.green,
-                              navigationFilter: OrderStatusType.completed,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border.all(),
-                          color: const Color(0xFFF6FAFD),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.1),
-                              spreadRadius: 1,
-                              blurRadius: 3,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Check Orders',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    profileProvider.rider?.name ?? riderName,
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  const Text(
-                                    'Tap to view active, accepted or delivered orders',
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () =>
-                                  _handleOrderButtonTap(context, orderProvider),
-                              child: Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF5A35EB),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.double_arrow_rounded,
-                                  color: Colors.white,
-                                  size: 22,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      Container(
-                        width: double.infinity,
-                        height: 400,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.1),
-                              spreadRadius: 1,
-                              blurRadius: 3,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Your Earnings',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Builder(
-                                  builder: (BuildContext context) {
-                                    return GestureDetector(
-                                      onTap: () {
-                                        _showFilterDropdown(
-                                          context,
-                                          dashboardProvider,
-                                        );
-                                      },
-                                      child: Container(
-                                        width: 94,
-                                        height: 30,
-                                        decoration: BoxDecoration(
-                                          border: Border.all(),
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.all(
-                                                5.0,
-                                              ),
-                                              child: Text(
-                                                dashboardProvider
-                                                        .filterUsed
-                                                        .isNotEmpty
-                                                    ? _formatFilterText(
-                                                        dashboardProvider
-                                                            .filterUsed,
-                                                      )
-                                                    : 'This Week',
-                                                style: const TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ),
-                                            const Icon(
-                                              Icons.keyboard_arrow_down,
-                                              color: Colors.black,
-                                              size: 16,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            const Expanded(child: CustomLineChart()),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
                   ),
                 ),
               );
             },
+          ),
+          title: Consumer2<ProfileProvider, LocationProvider>(
+            builder: (context, profileProvider, locationProvider, child) {
+              final displayName = profileProvider.rider?.name ?? riderName;
+              final displayid = profileProvider.rider?.id ?? '';
+      
+              final addressParts = (locationProvider?.address ?? '')
+                  .split(',')
+                  .map((e) => e.trim())
+                  .toList();
+              final primaryAddress = addressParts.isNotEmpty
+                  ? addressParts[0]
+                  : 'Unknown location';
+      
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Hello $displayName',
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              LocationSearchScreen(userId: displayid.toString()),
+                        ),
+                      );
+      
+                      if (result == true && mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                SizedBox(width: 8),
+                                Text('Updating  location...'),
+                              ],
+                            ),
+                            backgroundColor: Color(0xFF6366F1),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            margin: EdgeInsets.all(16),
+                          ),
+                        );
+                      }
+                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.location_on,
+                          color: Color(0xFF6366F1),
+                          size: 16,
+                        ),
+                        SizedBox(width: 4),
+                        Flexible(
+                          child: locationProvider?.isLoading == true
+                              ? Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 12,
+                                      height: 12,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Color(0xFF6366F1),
+                                      ),
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Loading...',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : locationProvider?.hasError == true
+                              ? Text(
+                                  'Tap to set location',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF6366F1),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                )
+                              : Text(
+                                  primaryAddress,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          actions: [
+            StatusToggleButton(),
+            Stack(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => NotificationScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(11),
+                      border: Border.all(
+                        color: const Color.fromARGB(255, 194, 193, 193),
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.notifications_outlined,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+                Consumer<NewOrderProvider>(
+                  builder: (context, orderProvider, child) {
+                    if (orderProvider.pendingOrders.isNotEmpty) {
+                      return Positioned(
+                        right: 10,
+                        top: 10,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(width: 16),
+          ],
+        ),
+        body: Consumer3<DashboardProvider, NewOrderProvider, ProfileProvider>(
+          builder:
+              (
+                context,
+                dashboardProvider,
+                orderProvider,
+                profileProvider,
+                child,
+              ) {
+                if (_isInitialized) {
+                  final currentCount = orderProvider.pendingOrders.length;
+                  if (currentCount != _previousPendingOrdersCount ||
+                      (currentCount > 0 && !_hasShownModal)) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _checkAndShowPendingOrderModal();
+                    });
+                  }
+                }
+      
+                if (dashboardProvider.isLoading && !dashboardProvider.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+      
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    await Future.wait([
+                      dashboardProvider.refreshDashboard(),
+                      orderProvider.refreshOrders(riderid),
+                      profileProvider.initializeProfile(),
+                    ]);
+                    // After refresh, check for new orders
+                    _checkAndShowPendingOrderModal();
+                  },
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        if (dashboardProvider.errorMessage != null)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.red[50],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.red[200]!),
+                            ),
+                            child: Text(
+                              dashboardProvider.errorMessage!,
+                              style: TextStyle(color: Colors.red[700]),
+                            ),
+                          ),
+      
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildStatCardWithNavigation(
+                                title: 'Today Orders',
+                                value: dashboardProvider.todayOrders.toString(),
+                                color: Colors.white,
+                                textColor: Colors.black,
+                                navigationFilter: OrderStatusType.all,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildStatCardWithNavigation(
+                                title: 'Pending',
+                                value: orderProvider.pendingOrders.length
+                                    .toString(),
+                                color: Colors.orange[50]!,
+                                textColor: Colors.orange,
+                                navigationFilter: OrderStatusType.pending,
+                                specificOrderId:
+                                    orderProvider.pendingOrders.isNotEmpty
+                                    ? orderProvider.pendingOrders.first.id
+                                    : null,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildStatCardWithNavigation(
+                                title: 'Cancelled',
+                                value: dashboardProvider.cancelledOrders
+                                    .toString(),
+                                color: Colors.red[50]!,
+                                textColor: Colors.red,
+                                navigationFilter: OrderStatusType.cancelled,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildStatCardWithNavigation(
+                                title: 'Completed',
+                                value: dashboardProvider.completedOrders
+                                    .toString(),
+                                color: Colors.green[50]!,
+                                textColor: Colors.green,
+                                navigationFilter: OrderStatusType.completed,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+      
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            border: Border.all(),
+                            color: const Color(0xFFF6FAFD),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                spreadRadius: 1,
+                                blurRadius: 3,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Check Orders',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      profileProvider.rider?.name ?? riderName,
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    const Text(
+                                      'Tap to view active, accepted or delivered orders',
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () =>
+                                    _handleOrderButtonTap(context, orderProvider),
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF5A35EB),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.double_arrow_rounded,
+                                    color: Colors.white,
+                                    size: 22,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+      
+                        const SizedBox(height: 20),
+      
+                        Container(
+                          width: double.infinity,
+                          height: 400,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                spreadRadius: 1,
+                                blurRadius: 3,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Your Earnings',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Builder(
+                                    builder: (BuildContext context) {
+                                      return GestureDetector(
+                                        onTap: () {
+                                          _showFilterDropdown(
+                                            context,
+                                            dashboardProvider,
+                                          );
+                                        },
+                                        child: Container(
+                                          width: 94,
+                                          height: 30,
+                                          decoration: BoxDecoration(
+                                            border: Border.all(),
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.all(
+                                                  5.0,
+                                                ),
+                                                child: Text(
+                                                  dashboardProvider
+                                                          .filterUsed
+                                                          .isNotEmpty
+                                                      ? _formatFilterText(
+                                                          dashboardProvider
+                                                              .filterUsed,
+                                                        )
+                                                      : 'This Week',
+                                                  style: const TextStyle(
+                                                    color: Colors.black,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ),
+                                              const Icon(
+                                                Icons.keyboard_arrow_down,
+                                                color: Colors.black,
+                                                size: 16,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              const Expanded(child: CustomLineChart()),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                );
+              },
+        ),
       ),
     );
   }
