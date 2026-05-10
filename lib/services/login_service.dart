@@ -7,7 +7,7 @@
 //   static Future<LoginResponse?> login(String phone, String password) async {
 //     try {
 //       final url = Uri.parse('${ApiConstant.baseUrl}${ApiConstant.loginEndpoint}');
-      
+
 //       final payload = {
 //         'phone': phone,
 //         'password': password,
@@ -24,7 +24,6 @@
 //       print('response statussssssssssssssssssssss ${response.statusCode}');
 //       print('response bodyyyyyyyyyyyyyyyyyyyyy ${response.body}');
 
-
 //       if (response.statusCode == 200) {
 //         final responseData = json.decode(response.body);
 //         return LoginResponse.fromJson(responseData);
@@ -37,16 +36,6 @@
 //   }
 // }
 
-
-
-
-
-
-
-
-
-
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -58,21 +47,22 @@ class LoginService {
     BuildContext context,
     String phone,
     String password,
+    String? fcmToken,
   ) async {
     try {
-      final url =
-          Uri.parse('${ApiConstant.baseUrl}${ApiConstant.loginEndpoint}');
+      final url = Uri.parse(
+        '${ApiConstant.baseUrl}${ApiConstant.loginEndpoint}',
+      );
 
       final payload = {
         'phone': phone,
         'password': password,
+        if (fcmToken != null) 'fcmToken': fcmToken,
       };
 
       final response = await http.post(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: json.encode(payload),
       );
 
@@ -89,19 +79,13 @@ class LoginService {
         final message = responseData['message'] ?? 'Login failed';
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(message), backgroundColor: Colors.red),
         );
         return null;
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Login error: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Login error: $e'), backgroundColor: Colors.red),
       );
       return null;
     }

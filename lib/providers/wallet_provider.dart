@@ -116,14 +116,14 @@ class WalletProvider extends ChangeNotifier {
   }
 
   /// Get customer tips amount (assuming it's a percentage or fixed amount from wallet)
-  String get customerTips {
-    // This is a placeholder calculation - adjust based on your business logic
-    if (_walletData != null) {
-      double tipsAmount = walletAmount * 0; // 10% of wallet as tips example
-      return '₹${tipsAmount.toStringAsFixed(2)}';
-    }
-    return '₹0.00';
-  }
+  // String get customerTips {
+  //   // This is a placeholder calculation - adjust based on your business logic
+  //   if (_walletData != null) {
+  //     double tipsAmount = walletAmount * 0.10; // 10% of wallet as tips example
+  //     return '₹${tipsAmount.toStringAsFixed(2)}';
+  //   }
+  //   return '₹0.00';
+  // }
 
   /// Check if wallet has sufficient balance for withdrawal
   bool canWithdraw({double minimumAmount = 100.0}) {

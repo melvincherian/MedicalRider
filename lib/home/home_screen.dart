@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:medical_delivery_app/home/profile_screen.dart';
 import 'package:medical_delivery_app/home/toggle_button.dart';
@@ -38,6 +40,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _previousPendingOrdersCount = 0;
   bool _isInitialized = false;
 
+  Timer? _pollingTimer;
+
   @override
   void initState() {
     super.initState();
@@ -54,11 +58,28 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _isInitialized = true;
       // Initial check after everything is loaded
       _checkAndShowPendingOrderModal();
+
+      _startPolling();
+    });
+  }
+
+  void _startPolling() {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 8), (_) async {
+      if (!mounted) return;
+      final newOrderProvider = Provider.of<NewOrderProvider>(
+        context,
+        listen: false,
+      );
+      await newOrderProvider.fetchNewOrders(riderid);
+      if (mounted) {
+        _checkAndShowPendingOrderModal();
+      }
     });
   }
 
   @override
   void dispose() {
+    _pollingTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _audioPlayer.dispose();
     super.dispose();
@@ -1277,50 +1298,50 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-          onPopInvokedWithResult: (didPop, result) async {
-      if (didPop) return;
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
 
-      final shouldExit = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Text(
-            'Exit App',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          content: const Text('Are you sure you want to exit?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey),
-              ),
+        final shouldExit = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5A35EB),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            title: const Text(
+              'Exit App',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            content: const Text('Are you sure you want to exit?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.grey),
                 ),
               ),
-              child: const Text(
-                'Exit',
-                style: TextStyle(color: Colors.white),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF5A35EB),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Exit',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
-            ),
-          ],
-        ),
-      );
+            ],
+          ),
+        );
 
-      if (shouldExit == true && context.mounted) {
-        // This actually exits the app
-        Navigator.of(context).pop();
-      }
-    },
+        if (shouldExit == true && context.mounted) {
+          // This actually exits the app
+          Navigator.of(context).pop();
+        }
+      },
       child: Scaffold(
         backgroundColor: Colors.grey[50],
         appBar: AppBar(
@@ -1363,7 +1384,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             builder: (context, profileProvider, locationProvider, child) {
               final displayName = profileProvider.rider?.name ?? riderName;
               final displayid = profileProvider.rider?.id ?? '';
-      
+
               final addressParts = (locationProvider?.address ?? '')
                   .split(',')
                   .map((e) => e.trim())
@@ -1371,7 +1392,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               final primaryAddress = addressParts.isNotEmpty
                   ? addressParts[0]
                   : 'Unknown location';
-      
+
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1388,11 +1409,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              LocationSearchScreen(userId: displayid.toString()),
+                          builder: (context) => LocationSearchScreen(
+                            userId: displayid.toString(),
+                          ),
                         ),
                       );
-      
+
                       if (result == true && mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -1546,11 +1568,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     });
                   }
                 }
-      
+
                 if (dashboardProvider.isLoading && !dashboardProvider.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
-      
+
                 return RefreshIndicator(
                   onRefresh: () async {
                     await Future.wait([
@@ -1581,7 +1603,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               style: TextStyle(color: Colors.red[700]),
                             ),
                           ),
-      
+
                         Row(
                           children: [
                             Expanded(
@@ -1637,7 +1659,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           ],
                         ),
                         const SizedBox(height: 20),
-      
+
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
@@ -1689,8 +1711,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 ),
                               ),
                               GestureDetector(
-                                onTap: () =>
-                                    _handleOrderButtonTap(context, orderProvider),
+                                onTap: () => _handleOrderButtonTap(
+                                  context,
+                                  orderProvider,
+                                ),
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: const BoxDecoration(
@@ -1707,9 +1731,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             ],
                           ),
                         ),
-      
+
                         const SizedBox(height: 20),
-      
+
                         Container(
                           width: double.infinity,
                           height: 400,
@@ -1730,10 +1754,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   const Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Your Earnings',

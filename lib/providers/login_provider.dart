@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:medical_delivery_app/firebase/firebase_service.dart';
 import 'package:medical_delivery_app/models/login_model.dart';
 import 'package:medical_delivery_app/services/login_service.dart';
 import 'package:medical_delivery_app/utils/helper_function.dart';
@@ -14,21 +15,35 @@ class LoginProvider extends ChangeNotifier {
   String get errorMessage => _errorMessage;
   RiderModel? get rider => _rider;
 
-  Future<bool> login(BuildContext context, String phone, String password) async {
+  Future<bool> login(
+    BuildContext context,
+    String phone,
+    String password,
+  ) async {
     _loginState = LoginState.loading;
     _errorMessage = '';
     notifyListeners();
 
     try {
-      final loginResponse = await LoginService.login(context,phone, password);
-      
+      final fcmToken = await FCMService().getFCMTokenSafe();
+
+      print(
+        '✅ FCCCCCCCCCCCCCCCCCCCCCMMMMMMMMMMMMMMMMMMMMMMMMMMM TOKEEEEEEEEEEEEEEEEEEEEEEEEEEEN $fcmToken',
+      );
+      final loginResponse = await LoginService.login(
+        context,
+        phone,
+        password,
+        fcmToken,
+      );
+
       if (loginResponse != null) {
         _rider = loginResponse.rider;
-        
+
         // Save to shared preferences
         await SharedPreferenceService.saveRiderData(_rider!);
         await SharedPreferenceService.setLoginStatus(true);
-        
+
         _loginState = LoginState.success;
         notifyListeners();
         return true;
@@ -50,7 +65,7 @@ class LoginProvider extends ChangeNotifier {
     try {
       final savedRider = await SharedPreferenceService.getRiderData();
       final isLoggedIn = await SharedPreferenceService.getLoginStatus();
-      
+
       if (savedRider != null && isLoggedIn) {
         _rider = savedRider;
         _loginState = LoginState.success;
@@ -75,7 +90,6 @@ class LoginProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
 
   void clearError() {
     _errorMessage = '';

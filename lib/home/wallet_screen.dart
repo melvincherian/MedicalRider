@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:medical_delivery_app/widget/home_chart_widget.dart';
 import 'package:provider/provider.dart';
@@ -15,7 +14,7 @@ class WalletScreen extends StatefulWidget {
 
 class _WalletScreenState extends State<WalletScreen> {
   String selectedTimePeriod = 'thisWeek';
-  
+
   final Map<String, String> timePeriodLabels = {
     'today': 'Today',
     'thisWeek': 'This Week',
@@ -37,15 +36,19 @@ class _WalletScreenState extends State<WalletScreen> {
   // Separate method for loading data
   Future<void> _loadData() async {
     await context.read<WalletProvider>().loadWalletData();
-    await context.read<ChartProvider>().fetchChartData(filter: selectedTimePeriod);
+    await context.read<ChartProvider>().fetchChartData(
+      filter: selectedTimePeriod,
+    );
   }
 
   Future<void> _refreshWalletData() async {
     await context.read<WalletProvider>().refreshWalletData();
-    
-    await context.read<ChartProvider>().fetchChartData(filter: selectedTimePeriod);
+
+    await context.read<ChartProvider>().fetchChartData(
+      filter: selectedTimePeriod,
+    );
   }
-  
+
   void _onTimePeriodChanged(String? newValue) {
     if (newValue != null && newValue != selectedTimePeriod) {
       setState(() {
@@ -61,11 +64,9 @@ class _WalletScreenState extends State<WalletScreen> {
     // Navigate and wait for result
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const WithdrawlScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const WithdrawlScreen()),
     );
-    
+
     // If withdrawal was successful, refresh data
     if (result == true && mounted) {
       await _refreshWalletData();
@@ -77,49 +78,49 @@ class _WalletScreenState extends State<WalletScreen> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-          onPopInvokedWithResult: (didPop, result) async {
-      if (didPop) return;
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
 
-      final shouldExit = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Text(
-            'Exit App',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          content: const Text('Are you sure you want to exit?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey),
-              ),
+        final shouldExit = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5A35EB),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            title: const Text(
+              'Exit App',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            content: const Text('Are you sure you want to exit?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.grey),
                 ),
               ),
-              child: const Text(
-                'Exit',
-                style: TextStyle(color: Colors.white),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF5A35EB),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Exit',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
-            ),
-          ],
-        ),
-      );
+            ],
+          ),
+        );
 
-      if (shouldExit == true && context.mounted) {
-        Navigator.of(context).pop();
-      }
-    },
+        if (shouldExit == true && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -158,16 +159,13 @@ class _WalletScreenState extends State<WalletScreen> {
                     SizedBox(height: 16),
                     Text(
                       'Loading wallet data...',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 16,
-                      ),
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
                     ),
                   ],
                 ),
               );
             }
-      
+
             if (walletProvider.hasError && !walletProvider.hasData) {
               return Center(
                 child: Padding(
@@ -193,10 +191,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       Text(
                         walletProvider.errorMessage ?? 'Unknown error occurred',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 20),
                       ElevatedButton(
@@ -215,7 +210,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 ),
               );
             }
-      
+
             return RefreshIndicator(
               onRefresh: _refreshWalletData,
               color: const Color(0xFF6C63FF),
@@ -226,7 +221,7 @@ class _WalletScreenState extends State<WalletScreen> {
                   child: Column(
                     children: [
                       const SizedBox(height: 20),
-                      
+
                       // Total Earnings Section
                       Text(
                         walletProvider.earningsDateRange.isNotEmpty
@@ -252,83 +247,177 @@ class _WalletScreenState extends State<WalletScreen> {
                           ),
                         ],
                       ),
-      
+
                       const SizedBox(height: 20),
                       const Divider(),
                       const SizedBox(height: 30),
-      
-                      // Wallet Balance and Customer Tips Section
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
+
+                      // Wallet Balance Section
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 20,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF6C63FF), Color(0xFF9B8FFF)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF6C63FF).withOpacity(0.35),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(
+                                        Icons.account_balance_wallet_rounded,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    const Text(
+                                      'Wallet Balance',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.w500,
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                // Container(
+                                //   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                //   decoration: BoxDecoration(
+                                //     color: Colors.white.withOpacity(0.15),
+                                //     borderRadius: BorderRadius.circular(20),
+                                //   ),
+                                //   child: const Text(
+                                //     'Available',
+                                //     style: TextStyle(
+                                //       fontSize: 11,
+                                //       color: Colors.white,
+                                //       fontWeight: FontWeight.w500,
+                                //     ),
+                                //   ),
+                                // ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              walletProvider.walletBalance,
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w700,
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey[300]!, width: 1),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Wallet Balance',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[600],
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    walletProvider.walletBalance,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ],
+                                letterSpacing: 0.5,
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey[300]!, width: 1),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Customer Tips',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[600],
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    walletProvider.customerTips,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                            const SizedBox(height: 4),
+                            // Text(
+                            //   'Updated just now',
+                            //   style: TextStyle(
+                            //     fontSize: 11,
+                            //     color: Colors.white.withOpacity(0.6),
+                            //     fontWeight: FontWeight.w400,
+                            //   ),
+                            // ),
+                          ],
+                        ),
                       ),
+
+                      // Wallet Balance and Customer Tips Section
+                      // Row(
+                      //   children: [
+                      //     Expanded(
+                      //       child: Container(
+                      //         padding: const EdgeInsets.all(16),
+                      //         decoration: BoxDecoration(
+                      //           color: Colors.white,
+                      //           borderRadius: BorderRadius.circular(12),
+                      //           border: Border.all(color: Colors.grey[300]!, width: 1),
+                      //         ),
+                      //         child: Column(
+                      //           crossAxisAlignment: CrossAxisAlignment.start,
+                      //           children: [
+                      //             Text(
+                      //               'Wallet Balance',
+                      //               style: TextStyle(
+                      //                 fontSize: 12,
+                      //                 color: Colors.grey[600],
+                      //                 fontWeight: FontWeight.w400,
+                      //               ),
+                      //             ),
+                      //             const SizedBox(height: 4),
+                      //             Text(
+                      //               walletProvider.walletBalance,
+                      //               style: const TextStyle(
+                      //                 fontSize: 18,
+                      //                 fontWeight: FontWeight.w600,
+                      //                 color: Colors.black,
+                      //               ),
+                      //             ),
+                      //           ],
+                      //         ),
+                      //       ),
+                      //     ),
+                      //     const SizedBox(width: 12),
+                      //     // Expanded(
+                      //     //   child: Container(
+                      //     //     padding: const EdgeInsets.all(16),
+                      //     //     decoration: BoxDecoration(
+                      //     //       color: Colors.white,
+                      //     //       borderRadius: BorderRadius.circular(12),
+                      //     //       border: Border.all(color: Colors.grey[300]!, width: 1),
+                      //     //     ),
+                      //     //     child: Column(
+                      //     //       crossAxisAlignment: CrossAxisAlignment.start,
+                      //     //       children: [
+                      //     //         Text(
+                      //     //           'Customer Tips',
+                      //     //           style: TextStyle(
+                      //     //             fontSize: 12,
+                      //     //             color: Colors.grey[600],
+                      //     //             fontWeight: FontWeight.w400,
+                      //     //           ),
+                      //     //         ),
+                      //     //         const SizedBox(height: 4),
+                      //     //         // Text(
+                      //     //         //   walletProvider.customerTips,
+                      //     //         //   style: const TextStyle(
+                      //     //         //     fontSize: 18,
+                      //     //         //     fontWeight: FontWeight.w600,
+                      //     //         //     color: Colors.black,
+                      //     //         //   ),
+                      //     //         // ),
+                      //     //       ],
+                      //     //     ),
+                      //     //   ),
+                      //     // ),
+                      //   ],
+                      // ),
                       const SizedBox(height: 30),
-      
+
                       // Your Earnings Section with Dropdown
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -342,7 +431,10 @@ class _WalletScreenState extends State<WalletScreen> {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               border: Border.all(color: Colors.grey[300]!),
                               borderRadius: BorderRadius.circular(30),
@@ -384,7 +476,7 @@ class _WalletScreenState extends State<WalletScreen> {
                         ],
                       ),
                       const SizedBox(height: 20),
-      
+
                       // Chart Container
                       Container(
                         height: 300,
@@ -405,9 +497,9 @@ class _WalletScreenState extends State<WalletScreen> {
                         ),
                         child: CustomLineChart(),
                       ),
-      
+
                       const SizedBox(height: 20),
-      
+
                       // Error message if any (while data exists)
                       if (walletProvider.hasError && walletProvider.hasData)
                         Container(
@@ -420,7 +512,11 @@ class _WalletScreenState extends State<WalletScreen> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.warning_amber, color: Colors.red[700], size: 16),
+                              Icon(
+                                Icons.warning_amber,
+                                color: Colors.red[700],
+                                size: 16,
+                              ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
@@ -434,13 +530,14 @@ class _WalletScreenState extends State<WalletScreen> {
                             ],
                           ),
                         ),
-      
+
                       // Withdraw Button - UPDATED
                       SizedBox(
                         width: double.infinity,
                         height: 50,
                         child: OutlinedButton(
-                          onPressed: _navigateToWithdrawal, // Use the new navigation method
+                          onPressed:
+                              _navigateToWithdrawal, // Use the new navigation method
                           style: OutlinedButton.styleFrom(
                             side: const BorderSide(
                               color: Color(0xFF6C63FF),
@@ -462,7 +559,7 @@ class _WalletScreenState extends State<WalletScreen> {
                           ),
                         ),
                       ),
-                      
+
                       const SizedBox(height: 20),
                     ],
                   ),

@@ -525,38 +525,38 @@ class _WithdrawlScreenState extends State<WithdrawlScreen> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[300]!, width: 1),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Customer Tips',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              walletProvider.customerTips,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    // Expanded(
+                    //   child: Container(
+                    //     padding: const EdgeInsets.all(16),
+                    //     decoration: BoxDecoration(
+                    //       color: Colors.white,
+                    //       borderRadius: BorderRadius.circular(12),
+                    //       border: Border.all(color: Colors.grey[300]!, width: 1),
+                    //     ),
+                    //     child: Column(
+                    //       crossAxisAlignment: CrossAxisAlignment.start,
+                    //       children: [
+                    //         Text(
+                    //           'Customer Tips',
+                    //           style: TextStyle(
+                    //             fontSize: 12,
+                    //             color: Colors.grey[600],
+                    //             fontWeight: FontWeight.w400,
+                    //           ),
+                    //         ),
+                    //         const SizedBox(height: 4),
+                    //         // Text(
+                    //         //   walletProvider.customerTips,
+                    //         //   style: const TextStyle(
+                    //         //     fontSize: 18,
+                    //         //     fontWeight: FontWeight.w600,
+                    //         //     color: Colors.black,
+                    //         //   ),
+                    //         // ),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
 
